@@ -1,0 +1,10 @@
+apiVersion: elasticserving.paddlepaddle.org/v1
+kind: Paddle
+metadata:
+  name: paddle-sample
+spec:
+  # Add fields here
+  foo: bar
+  resources:
+    requests:
+      cpu: 80m
