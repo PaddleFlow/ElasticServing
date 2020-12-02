@@ -182,8 +182,8 @@ func buildDeployment(paddle elasticservingv1.Paddle) *apps.Deployment {
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  "nginx",
-							Image: "nginx:latest",
+							Name:  "paddleServing",
+							Image: "paddlepaddle/serving:latest",
 						},
 					},
 				},
