@@ -4,7 +4,8 @@ metadata:
   name: paddle-sample
 spec:
   # Add fields here
-  foo: bar
   resources:
     requests:
       cpu: 80m
+  deploymentName: paddle
+  replicas: 0

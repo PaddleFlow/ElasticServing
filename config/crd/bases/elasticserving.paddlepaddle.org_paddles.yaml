@@ -39,12 +39,12 @@ spec:
         spec:
           description: PaddleSpec defines the desired state of Paddle
           properties:
-            foo:
-              description: Foo is an example field of Paddle. Edit Paddle_types.go
-                to remove/update
+            deploymentName:
+              maxLength: 64
               type: string
             replicas:
               format: int32
+              minimum: 0
               type: integer
             resources:
               description: Defaults to requests and limits of 1CPU, 2Gb MEM.
@@ -78,6 +78,8 @@ spec:
             storageUri:
               description: The URI for the saved model
               type: string
+          required:
+          - deploymentName
           type: object
         status:
           description: PaddleStatus defines the observed state of Paddle
@@ -87,6 +89,7 @@ spec:
               type: integer
             replicas:
               format: int32
+              minimum: 0
               type: integer
             traffic:
               description: Traffic percentage that goes to default services

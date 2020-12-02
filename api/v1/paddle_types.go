@@ -29,15 +29,16 @@ type PaddleSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Paddle. Edit Paddle_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// +kubebuilder:validation:MaxLength=64
+	DeploymentName string `json:"deploymentName"`
 	// The URI for the saved model
 	StorageURI string `json:"storageUri,omitempty"`
 	// Docker image version
 	RuntimeVersion string `json:"runtimeVersion,omitempty"`
 	// Defaults to requests and limits of 1CPU, 2Gb MEM.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
-
+	// +optional
+	// +kubebuilder:validation:Minimum=0
 	Replicas *int32 `json:"replicas,omitempty"`
 }
 
@@ -51,7 +52,8 @@ type PaddleStatus struct {
 	Traffic int `json:"traffic,omitempty"`
 	// Traffic percentage that goes to canary services
 	CanaryTraffic int `json:"canaryTraffic,omitempty"`
-
+	// +optional
+	// +kubebuilder:validation:Minimum=0
 	Replicas int32 `json:"replicas,omitempty"`
 }
 
