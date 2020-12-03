@@ -8,4 +8,8 @@ spec:
     requests:
       cpu: 80m
   deploymentName: paddle
-  replicas: 0
+  replicas: 1
+  # storageUri: paddlepaddle/serving:latest
+  # runtimeVersion: paddleserving
+  storageUri: nginx:latest
+  runtimeVersion: nginx

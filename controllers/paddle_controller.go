@@ -42,6 +42,7 @@ type PaddleReconciler struct {
 
 // +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddles,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddles/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddles/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
@@ -53,7 +54,7 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	log.Info("reconciling paddle")
 
 	// Load the Paddle by name
-	paddle := elasticservingv1.Paddle{}
+	var paddle elasticservingv1.Paddle
 	if err := r.Get(ctx, req.NamespacedName, &paddle); err != nil {
 		log.Error(err, "unable to fetch Paddle")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
@@ -80,12 +81,19 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Info("could not find existing Deployment for Paddle, creating one...")
 
 		deployment = *buildDeployment(paddle)
+		log.Info("deployment built")
+
 		if err := r.Client.Create(ctx, &deployment); err != nil {
 			log.Error(err, "failed to create Deployment resource")
 			return ctrl.Result{}, err
 		}
 
-		r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Created", "Created deployment %q", deployment.Name)
+		log.Info("Client created successfully")
+		if &paddle == nil {
+			log.Info("Paddle has problems")
+		}
+
+		// r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Created", "Created deployment %q", deployment.Name)
 		log.Info("created Deployment resource for Paddle")
 		return ctrl.Result{}, nil
 	}
@@ -109,7 +117,7 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, err
 		}
 
-		r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Scaled", "Scaled deployment %q to %d replicas", deployment.Name, expectedReplicas)
+		// r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Scaled", "Scaled deployment %q to %d replicas", deployment.Name, expectedReplicas)
 
 		return ctrl.Result{}, nil
 	}
@@ -150,7 +158,7 @@ func (r *PaddleReconciler) cleanupOwnedResources(ctx context.Context, log logr.L
 			return err
 		}
 
-		r.Recorder.Eventf(paddle, core.EventTypeNormal, "Deleted", "Deleted deployment %q", depl.Name)
+		// r.Recorder.Eventf(paddle, core.EventTypeNormal, "Deleted", "Deleted deployment %q", depl.Name)
 		deleted++
 	}
 
@@ -182,8 +190,8 @@ func buildDeployment(paddle elasticservingv1.Paddle) *apps.Deployment {
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  "paddleServing",
-							Image: "paddlepaddle/serving:latest",
+							Name:  paddle.Spec.RuntimeVersion,
+							Image: paddle.Spec.StorageURI,
 						},
 					},
 				},
