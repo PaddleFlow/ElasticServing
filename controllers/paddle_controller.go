@@ -35,8 +35,8 @@ import (
 // PaddleReconciler reconciles a Paddle object
 type PaddleReconciler struct {
 	client.Client
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
+	Log logr.Logger
+
 	Recorder record.EventRecorder
 }
 
@@ -78,10 +78,10 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	deployment := apps.Deployment{}
 	err := r.Client.Get(ctx, client.ObjectKey{Namespace: paddle.Namespace, Name: paddle.Spec.DeploymentName}, &deployment)
 	if apierrors.IsNotFound(err) {
-		log.Info("could not find existing Deployment for Paddle, creating one...")
+		log.Info("Could not find existing Deployment for Paddle, creating one...")
 
 		deployment = *buildDeployment(paddle)
-		log.Info("deployment built")
+		log.Info("Successfully building the deployment")
 
 		if err := r.Client.Create(ctx, &deployment); err != nil {
 			log.Error(err, "failed to create Deployment resource")
@@ -89,12 +89,9 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 
 		log.Info("Client created successfully")
-		if &paddle == nil {
-			log.Info("Paddle has problems")
-		}
 
-		// r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Created", "Created deployment %q", deployment.Name)
-		log.Info("created Deployment resource for Paddle")
+		r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Created", "Created deployment %q", deployment.Name)
+		log.Info("Created Deployment resource for Paddle")
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
@@ -117,7 +114,7 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, err
 		}
 
-		// r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Scaled", "Scaled deployment %q to %d replicas", deployment.Name, expectedReplicas)
+		r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Scaled", "Scaled deployment %q to %d replicas", deployment.Name, expectedReplicas)
 
 		return ctrl.Result{}, nil
 	}
@@ -158,7 +155,7 @@ func (r *PaddleReconciler) cleanupOwnedResources(ctx context.Context, log logr.L
 			return err
 		}
 
-		// r.Recorder.Eventf(paddle, core.EventTypeNormal, "Deleted", "Deleted deployment %q", depl.Name)
+		r.Recorder.Eventf(paddle, core.EventTypeNormal, "Deleted", "Deleted deployment %q", depl.Name)
 		deleted++
 	}
 

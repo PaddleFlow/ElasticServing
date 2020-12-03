@@ -67,9 +67,9 @@ func main() {
 	}
 
 	if err = (&controllers.PaddleReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Paddle"),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("Paddle"),
+		Recorder: mgr.GetEventRecorderFor("paddle-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Paddle")
 		os.Exit(1)
