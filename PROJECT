@@ -1,0 +1,7 @@
+domain: paddlepaddle.org
+repo: ElasticServing
+resources:
+- group: elasticserving
+  kind: Paddle
+  version: v1
+version: "2"
