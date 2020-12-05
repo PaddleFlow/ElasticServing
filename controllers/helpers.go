@@ -41,32 +41,25 @@ func (r *PaddleReconciler) cleanupOwnedResources(ctx context.Context, log logr.L
 
 	log.Info("finished cleaning up old Deployment resources", "number_deleted", deleted)
 
-	log.Info("finding existing Deployments for paddle resource")
+	var services core.ServiceList
 
-	// List all deployment resources owned by this paddle
-	// var services core.ServiceList
-	// if err := r.List(ctx, &services, client.InNamespace(paddle.Namespace), client.MatchingField(deploymentOwnerKey, paddle.Name)); err != nil {
-	// 	return err
-	// }
+	deleted = 0
+	for _, svc := range services.Items {
+		if svc.Name == paddle.Spec.DeploymentName {
+			continue
+		}
 
-	// deleted = 0
-	// for _, svc := range services.Items {
-	// 	if svc.Name == paddle.Spec.DeploymentName {
-	// 		// If this deployment's name matches the one on the paddle resource
-	// 		// then do not delete it.
-	// 		continue
-	// 	}
+		if err := r.Client.Delete(ctx, &svc); err != nil {
+			log.Error(err, "dailed to deleted Service resource")
+			return err
+		}
 
-	// 	if err := r.Client.Delete(ctx, &svc); err != nil {
-	// 		log.Error(err, "failed to delete Deployment resource")
-	// 		return err
-	// 	}
+		r.Recorder.Eventf(paddle, core.EventTypeNormal, "Deleted", "Deleted service %q", svc.Name)
+		deleted++
+	}
 
-	// 	r.Recorder.Eventf(paddle, core.EventTypeNormal, "Deleted", "Deleted deployment %q", svc.Name)
-	// 	deleted++
-	// }
+	log.Info("finished cleaning up old Service resources", "number_deleted", deleted)
 
-	// log.Info("finished cleaning up old Deployment resources", "number_deleted", deleted)
 	return nil
 }
 

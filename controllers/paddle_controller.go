@@ -162,12 +162,9 @@ func (r *PaddleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		if owner == nil {
 			return nil
 		}
-		// ...make sure it's a Paddle...
 		if owner.APIVersion != elasticservingv1.GroupVersion.String() || owner.Kind != "paddle" {
 			return nil
 		}
-
-		// ...and if so, return it
 		return []string{owner.Name}
 	}); err != nil {
 		return err
