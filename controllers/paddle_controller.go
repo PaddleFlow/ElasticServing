@@ -27,6 +27,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -35,8 +36,8 @@ import (
 // PaddleReconciler reconciles a Paddle object
 type PaddleReconciler struct {
 	client.Client
-	Log logr.Logger
-
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 }
 
@@ -72,10 +73,11 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	log.Info("Successfully cleaning up resources")
 
+	log.Info("Creating Deployment")
 	log = log.WithValues("deployment_name", paddle.Spec.DeploymentName)
-
-	log.Info("checking if an existing Deployment exists for this resource")
+	log.Info("Checking if an existing Deployment exists for this resource")
 	deployment := apps.Deployment{}
+	service := core.Service{}
 	err := r.Client.Get(ctx, client.ObjectKey{Namespace: paddle.Namespace, Name: paddle.Spec.DeploymentName}, &deployment)
 	if apierrors.IsNotFound(err) {
 		log.Info("Could not find existing Deployment for Paddle, creating one...")
@@ -88,18 +90,32 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, err
 		}
 
-		log.Info("Client created successfully")
+		log.Info("Deployment created successfully")
 
 		r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Created", "Created deployment %q", deployment.Name)
 		log.Info("Created Deployment resource for Paddle")
+
+		service = *buildService(paddle)
+		log.Info("Successfully building the service")
+
+		if err := r.Client.Create(ctx, &service); err != nil {
+			log.Error(err, "failed to create Service resource")
+			return ctrl.Result{}, err
+		}
+
+		log.Info("Service created successfully")
+
+		r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Created", "Created service %q", deployment.Name)
+		log.Info("Created service resource for Paddle")
+
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
-		log.Error(err, "failed to get Deployment for Paddle resource")
+		log.Error(err, "failed to get Deployment or Service for Paddle resource")
 		return ctrl.Result{}, err
 	}
 
-	log.Info("existing Deployment resource already exists for Paddle, checking replica count")
+	log.Info("Existing deployment resource already exists for Paddle, checking replica count")
 
 	expectedReplicas := int32(1)
 	if paddle.Spec.Replicas != nil {
@@ -161,7 +177,59 @@ func (r *PaddleReconciler) cleanupOwnedResources(ctx context.Context, log logr.L
 
 	log.Info("finished cleaning up old Deployment resources", "number_deleted", deleted)
 
+	log.Info("finding existing Deployments for paddle resource")
+
+	// List all deployment resources owned by this paddle
+	// var services core.ServiceList
+	// if err := r.List(ctx, &services, client.InNamespace(paddle.Namespace), client.MatchingField(deploymentOwnerKey, paddle.Name)); err != nil {
+	// 	return err
+	// }
+
+	// deleted = 0
+	// for _, svc := range services.Items {
+	// 	if svc.Name == paddle.Spec.DeploymentName {
+	// 		// If this deployment's name matches the one on the paddle resource
+	// 		// then do not delete it.
+	// 		continue
+	// 	}
+
+	// 	if err := r.Client.Delete(ctx, &svc); err != nil {
+	// 		log.Error(err, "failed to delete Deployment resource")
+	// 		return err
+	// 	}
+
+	// 	r.Recorder.Eventf(paddle, core.EventTypeNormal, "Deleted", "Deleted deployment %q", svc.Name)
+	// 	deleted++
+	// }
+
+	// log.Info("finished cleaning up old Deployment resources", "number_deleted", deleted)
 	return nil
+}
+
+func buildService(paddle elasticservingv1.Paddle) *core.Service {
+	name := paddle.Spec.DeploymentName
+	service := core.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: paddle.Namespace,
+		},
+		Spec: core.ServiceSpec{
+			Selector: map[string]string{
+				"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+			},
+			Type: "LoadBalancer",
+			Ports: []core.ServicePort{
+				{
+					Port: 80,
+					TargetPort: intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: 80,
+					},
+				},
+			},
+		},
+	}
+	return &service
 }
 
 func buildDeployment(paddle elasticservingv1.Paddle) *apps.Deployment {
