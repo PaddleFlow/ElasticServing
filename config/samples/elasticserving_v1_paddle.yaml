@@ -9,7 +9,8 @@ spec:
       cpu: 80m
   deploymentName: paddle
   replicas: 1
-  storageUri: paddlepaddle/serving:latest
+  storageUri: hub.baidubce.com/paddlepaddle/serving:latest
   runtimeVersion: paddleserving
+  port: 9292
   # storageUri: nginx:latest
   # runtimeVersion: nginx

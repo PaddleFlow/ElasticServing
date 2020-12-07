@@ -114,6 +114,9 @@ func buildDeployment(paddle elasticservingv1.Paddle) *apps.Deployment {
 						{
 							Name:  paddle.Spec.RuntimeVersion,
 							Image: paddle.Spec.StorageURI,
+							Ports: []core.ContainerPort{
+								{ContainerPort: paddle.Spec.Port, Name: "http", Protocol: "TCP"},
+							},
 						},
 					},
 				},

@@ -39,6 +39,10 @@ spec:
               deploymentName:
                 maxLength: 64
                 type: string
+              port:
+                description: Port
+                format: int32
+                type: integer
               replicas:
                 format: int32
                 minimum: 0

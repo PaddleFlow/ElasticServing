@@ -40,6 +40,8 @@ type PaddleSpec struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	Replicas *int32 `json:"replicas,omitempty"`
+	// Port
+	Port int32 `json:"port,omitempty"`
 }
 
 // PaddleStatus defines the observed state of Paddle
