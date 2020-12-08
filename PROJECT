@@ -1,4 +1,5 @@
 domain: paddlepaddle.org
+multigroup: true
 repo: ElasticServing
 resources:
 - group: elasticserving

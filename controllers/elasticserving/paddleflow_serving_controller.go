@@ -19,7 +19,7 @@ package controllers
 import (
 	"context"
 
-	elasticservingv1 "ElasticServing/api/v1"
+	elasticservingv1 "ElasticServing/apis/elasticserving/v1"
 
 	"github.com/go-logr/logr"
 	apps "k8s.io/api/apps/v1"
@@ -41,7 +41,6 @@ type PaddleReconciler struct {
 }
 
 // +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddles,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddles/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddles/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch

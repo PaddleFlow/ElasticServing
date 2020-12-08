@@ -26,8 +26,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	elasticservingv1 "ElasticServing/api/v1"
-	"ElasticServing/controllers"
+	elasticservingv1 "ElasticServing/apis/elasticserving/v1"
+	controllers "ElasticServing/controllers/elasticserving"
 	// +kubebuilder:scaffold:imports
 )
 
