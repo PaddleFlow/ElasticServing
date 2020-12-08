@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 
-	elasticservingv1 "ElasticServing/apis/elasticserving/v1"
+	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
 
 	"github.com/go-logr/logr"
 	apps "k8s.io/api/apps/v1"

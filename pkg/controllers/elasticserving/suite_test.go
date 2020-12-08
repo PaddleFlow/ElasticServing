@@ -36,7 +36,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	elasticservingv1 "ElasticServing/apis/elasticserving/v1"
+	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -60,7 +60,7 @@ var _ = BeforeSuite(func(done Done) {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("../..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{filepath.Join("../../..", "config", "crd", "bases")},
 	}
 
 	var err error

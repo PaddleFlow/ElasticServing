@@ -29,7 +29,7 @@ import (
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	elasticservingv1 "ElasticServing/apis/elasticserving/v1"
+	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
 )
 
 var _ = Context("Inside of a new namespace", func() {
