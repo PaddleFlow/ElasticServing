@@ -40,6 +40,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = elasticservingv1.AddToScheme(scheme)
+
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -66,7 +67,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.PaddleReconciler{
+	if err = (&controllers.PaddleServiceReconciler{
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("Paddle"),
 		Scheme:   mgr.GetScheme(),

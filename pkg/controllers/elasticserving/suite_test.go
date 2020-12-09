@@ -89,8 +89,8 @@ var _ = AfterSuite(func() {
 // SetupTest will set up a testing environment.
 // This includes:
 // * creating a Namespace to be used during the test
-// * starting the 'PaddleReconciler'
-// * stopping the 'PaddleReconciler" after the test ends
+// * starting the 'PaddleService Reconciler'
+// * stopping the 'PaddleService Reconciler" after the test ends
 // Call this function at the start of each of your tests.
 func SetupTest(ctx context.Context) *core.Namespace {
 	var stopCh chan struct{}
@@ -108,10 +108,10 @@ func SetupTest(ctx context.Context) *core.Namespace {
 		mgr, err := ctrl.NewManager(cfg, ctrl.Options{})
 		Expect(err).NotTo(HaveOccurred(), "failed to create manager")
 
-		controller := &PaddleReconciler{
+		controller := &PaddleServiceReconciler{
 			Client:   mgr.GetClient(),
 			Log:      logf.Log,
-			Recorder: mgr.GetEventRecorderFor("paddle-controller"),
+			Recorder: mgr.GetEventRecorderFor("paddlesvc-controller"),
 		}
 		err = controller.SetupWithManager(mgr)
 		Expect(err).NotTo(HaveOccurred(), "failed to setup controller")

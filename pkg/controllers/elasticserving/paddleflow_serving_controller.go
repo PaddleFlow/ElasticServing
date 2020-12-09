@@ -32,55 +32,55 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// PaddleReconciler reconciles a Paddle object
-type PaddleReconciler struct {
+// PaddleServiceReconciler reconciles a PaddleService object
+type PaddleServiceReconciler struct {
 	client.Client
 	Log      logr.Logger
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 }
 
-// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddles,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddles/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
-func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
-	log := r.Log.WithValues("paddle", req.NamespacedName)
+	log := r.Log.WithValues("paddlesvc", req.NamespacedName)
 
 	// your logic here
-	log.Info("reconciling paddle")
+	log.Info("reconciling paddlesvc")
 
-	// Load the Paddle by name
-	var paddle elasticservingv1.Paddle
-	if err := r.Get(ctx, req.NamespacedName, &paddle); err != nil {
-		log.Error(err, "unable to fetch Paddle")
+	// Load the PaddleService by name
+	var paddlesvc elasticservingv1.PaddleService
+	if err := r.Get(ctx, req.NamespacedName, &paddlesvc); err != nil {
+		log.Error(err, "unable to fetch PaddleService")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
 		// requeue (we'll need to wait for a new notification), and we can get them
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log.Info("Successfully fetching paddle")
+	log.Info("Successfully fetching paddlesvc")
 
-	if err := r.cleanupOwnedResources(ctx, log, &paddle); err != nil {
-		log.Error(err, "failed to clean up old Deployment resources for this Paddle")
+	if err := r.cleanupOwnedResources(ctx, log, &paddlesvc); err != nil {
+		log.Error(err, "failed to clean up old Deployment resources for this PaddleService")
 		return ctrl.Result{}, err
 	}
 
 	log.Info("Successfully cleaning up resources")
 
 	log.Info("Creating Deployment")
-	log = log.WithValues("deployment_name", paddle.Spec.DeploymentName)
+	log = log.WithValues("deployment_name", paddlesvc.Spec.DeploymentName)
 	log.Info("Checking if an existing Deployment exists for this resource")
 	deployment := apps.Deployment{}
 	service := core.Service{}
-	err := r.Client.Get(ctx, client.ObjectKey{Namespace: paddle.Namespace, Name: paddle.Spec.DeploymentName}, &deployment)
+	err := r.Client.Get(ctx, client.ObjectKey{Namespace: paddlesvc.Namespace, Name: paddlesvc.Spec.DeploymentName}, &deployment)
 	if apierrors.IsNotFound(err) {
-		log.Info("Could not find existing Deployment for Paddle, creating one...")
+		log.Info("Could not find existing Deployment for PaddleService, creating one...")
 
-		deployment = *buildDeployment(paddle)
+		deployment = *buildDeployment(paddlesvc)
 		log.Info("Successfully building the deployment")
 
 		if err := r.Client.Create(ctx, &deployment); err != nil {
@@ -90,10 +90,10 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		log.Info("Deployment created successfully")
 
-		r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Created", "Created deployment %q", deployment.Name)
-		log.Info("Created Deployment resource for Paddle")
+		r.Recorder.Eventf(&paddlesvc, core.EventTypeNormal, "Created", "Created deployment %q", deployment.Name)
+		log.Info("Created Deployment resource for PaddleService")
 
-		service = *buildService(paddle)
+		service = *buildService(paddlesvc)
 		log.Info("Successfully building the service")
 
 		if err := r.Client.Create(ctx, &service); err != nil {
@@ -103,21 +103,21 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		log.Info("Service created successfully")
 
-		r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Created", "Created service %q", deployment.Name)
-		log.Info("Created service resource for Paddle")
+		r.Recorder.Eventf(&paddlesvc, core.EventTypeNormal, "Created", "Created service %q", deployment.Name)
+		log.Info("Created service resource for PaddleService")
 
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
-		log.Error(err, "failed to get Deployment or Service for Paddle resource")
+		log.Error(err, "failed to get Deployment or Service for PaddleService resource")
 		return ctrl.Result{}, err
 	}
 
-	log.Info("Existing deployment resource already exists for Paddle, checking replica count")
+	log.Info("Existing deployment resource already exists for PaddleService, checking replica count")
 
 	expectedReplicas := int32(1)
-	if paddle.Spec.Replicas != nil {
-		expectedReplicas = *paddle.Spec.Replicas
+	if paddlesvc.Spec.Replicas != nil {
+		expectedReplicas = *paddlesvc.Spec.Replicas
 	}
 	if *deployment.Spec.Replicas != expectedReplicas {
 		log.Info("updating replica count", "old_count", *deployment.Spec.Replicas, "new_count", expectedReplicas)
@@ -128,17 +128,17 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, err
 		}
 
-		r.Recorder.Eventf(&paddle, core.EventTypeNormal, "Scaled", "Scaled deployment %q to %d replicas", deployment.Name, expectedReplicas)
+		r.Recorder.Eventf(&paddlesvc, core.EventTypeNormal, "Scaled", "Scaled deployment %q to %d replicas", deployment.Name, expectedReplicas)
 
 		return ctrl.Result{}, nil
 	}
 
 	log.Info("replica count up to date", "replica_count", *deployment.Spec.Replicas)
 
-	log.Info("updating Paddle resource status")
-	paddle.Status.Replicas = deployment.Status.ReadyReplicas
-	if r.Client.Status().Update(ctx, &paddle); err != nil {
-		log.Error(err, "failed to update Paddle status")
+	log.Info("updating PaddleService resource status")
+	paddlesvc.Status.Replicas = deployment.Status.ReadyReplicas
+	if r.Client.Status().Update(ctx, &paddlesvc); err != nil {
+		log.Error(err, "failed to update PaddleService status")
 		return ctrl.Result{}, err
 	}
 
@@ -147,13 +147,13 @@ func (r *PaddleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return ctrl.Result{}, nil
 }
 
-// func (r *PaddleReconciler) SetupWithManager(mgr ctrl.Manager) error {
+// func (r *PaddleServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // 	return ctrl.NewControllerManagedBy(mgr).
-// 		For(&elasticservingv1.Paddle{}).
+// 		For(&elasticservingv1.PaddleService{}).
 // 		Complete(r)
 // }
 
-func (r *PaddleReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *PaddleServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(&apps.Deployment{}, deploymentOwnerKey, func(rawObj runtime.Object) []string {
 		// grab the Deployment object, extract the owner...
 		depl := rawObj.(*apps.Deployment)
@@ -161,7 +161,7 @@ func (r *PaddleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		if owner == nil {
 			return nil
 		}
-		if owner.APIVersion != elasticservingv1.GroupVersion.String() || owner.Kind != "paddle" {
+		if owner.APIVersion != elasticservingv1.GroupVersion.String() || owner.Kind != "paddlesvc" {
 			return nil
 		}
 		return []string{owner.Name}
@@ -170,7 +170,7 @@ func (r *PaddleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&elasticservingv1.Paddle{}).
+		For(&elasticservingv1.PaddleService{}).
 		Owns(&apps.Deployment{}).
 		Complete(r)
 }

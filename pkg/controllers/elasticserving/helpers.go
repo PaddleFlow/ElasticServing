@@ -13,19 +13,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (r *PaddleReconciler) cleanupOwnedResources(ctx context.Context, log logr.Logger, paddle *elasticservingv1.Paddle) error {
-	log.Info("finding existing Deployments for paddle resource")
+func (r *PaddleServiceReconciler) cleanupOwnedResources(ctx context.Context, log logr.Logger, paddlesvc *elasticservingv1.PaddleService) error {
+	log.Info("finding existing Deployments for paddlesvc resource")
 
-	// List all deployment resources owned by this paddle
+	// List all deployment resources owned by this paddlesvc
 	var deployments apps.DeploymentList
-	if err := r.List(ctx, &deployments, client.InNamespace(paddle.Namespace), client.MatchingField(deploymentOwnerKey, paddle.Name)); err != nil {
+	if err := r.List(ctx, &deployments, client.InNamespace(paddlesvc.Namespace), client.MatchingField(deploymentOwnerKey, paddlesvc.Name)); err != nil {
 		return err
 	}
 
 	deleted := 0
 	for _, depl := range deployments.Items {
-		if depl.Name == paddle.Spec.DeploymentName {
-			// If this deployment's name matches the one on the paddle resource
+		if depl.Name == paddlesvc.Spec.DeploymentName {
+			// If this deployment's name matches the one on the paddlesvc resource
 			// then do not delete it.
 			continue
 		}
@@ -35,7 +35,7 @@ func (r *PaddleReconciler) cleanupOwnedResources(ctx context.Context, log logr.L
 			return err
 		}
 
-		r.Recorder.Eventf(paddle, core.EventTypeNormal, "Deleted", "Deleted deployment %q", depl.Name)
+		r.Recorder.Eventf(paddlesvc, core.EventTypeNormal, "Deleted", "Deleted deployment %q", depl.Name)
 		deleted++
 	}
 
@@ -45,7 +45,7 @@ func (r *PaddleReconciler) cleanupOwnedResources(ctx context.Context, log logr.L
 
 	deleted = 0
 	for _, svc := range services.Items {
-		if svc.Name == paddle.Spec.DeploymentName {
+		if svc.Name == paddlesvc.Spec.DeploymentName {
 			continue
 		}
 
@@ -54,7 +54,7 @@ func (r *PaddleReconciler) cleanupOwnedResources(ctx context.Context, log logr.L
 			return err
 		}
 
-		r.Recorder.Eventf(paddle, core.EventTypeNormal, "Deleted", "Deleted service %q", svc.Name)
+		r.Recorder.Eventf(paddlesvc, core.EventTypeNormal, "Deleted", "Deleted service %q", svc.Name)
 		deleted++
 	}
 
@@ -63,16 +63,16 @@ func (r *PaddleReconciler) cleanupOwnedResources(ctx context.Context, log logr.L
 	return nil
 }
 
-func buildService(paddle elasticservingv1.Paddle) *core.Service {
-	name := paddle.Spec.DeploymentName
+func buildService(paddlesvc elasticservingv1.PaddleService) *core.Service {
+	name := paddlesvc.Spec.DeploymentName
 	service := core.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: paddle.Namespace,
+			Namespace: paddlesvc.Namespace,
 		},
 		Spec: core.ServiceSpec{
 			Selector: map[string]string{
-				"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+				"elastic-serving.paddlepaddle.org/deployment-name": paddlesvc.Spec.DeploymentName,
 			},
 			Type: "LoadBalancer",
 			Ports: []core.ServicePort{
@@ -89,33 +89,33 @@ func buildService(paddle elasticservingv1.Paddle) *core.Service {
 	return &service
 }
 
-func buildDeployment(paddle elasticservingv1.Paddle) *apps.Deployment {
+func buildDeployment(paddlesvc elasticservingv1.PaddleService) *apps.Deployment {
 	deployment := apps.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            paddle.Spec.DeploymentName,
-			Namespace:       paddle.Namespace,
-			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(&paddle, elasticservingv1.GroupVersion.WithKind("paddle"))},
+			Name:            paddlesvc.Spec.DeploymentName,
+			Namespace:       paddlesvc.Namespace,
+			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(&paddlesvc, elasticservingv1.GroupVersion.WithKind("paddlesvc"))},
 		},
 		Spec: apps.DeploymentSpec{
-			Replicas: paddle.Spec.Replicas,
+			Replicas: paddlesvc.Spec.Replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+					"elastic-serving.paddlepaddle.org/deployment-name": paddlesvc.Spec.DeploymentName,
 				},
 			},
 			Template: core.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+						"elastic-serving.paddlepaddle.org/deployment-name": paddlesvc.Spec.DeploymentName,
 					},
 				},
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  paddle.Spec.RuntimeVersion,
-							Image: paddle.Spec.StorageURI,
+							Name:  paddlesvc.Spec.RuntimeVersion,
+							Image: paddlesvc.Spec.StorageURI,
 							Ports: []core.ContainerPort{
-								{ContainerPort: paddle.Spec.Port, Name: "http", Protocol: "TCP"},
+								{ContainerPort: paddlesvc.Spec.Port, Name: "http", Protocol: "TCP"},
 							},
 						},
 					},

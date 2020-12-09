@@ -39,37 +39,37 @@ var _ = Context("Inside of a new namespace", func() {
 	Describe("when no existing resources exist", func() {
 
 		It("should create a new Deployment resource with the specified name and one replica if none is provided", func() {
-			paddle := &elasticservingv1.Paddle{
+			paddlesvc := &elasticservingv1.PaddleService{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testresource",
 					Namespace: ns.Name,
 				},
-				Spec: elasticservingv1.PaddleSpec{
+				Spec: elasticservingv1.PaddleServiceSpec{
 					DeploymentName: "deployment-name",
-					RuntimeVersion: "paddle",
+					RuntimeVersion: "paddlesvc",
 					StorageURI:     "hub.baidubce.com/paddlepaddle/serving:latest",
 					Port:           9292,
 				},
 			}
 
-			err := k8sClient.Create(ctx, paddle)
-			Expect(err).NotTo(HaveOccurred(), "failed to create test Paddle resource")
+			err := k8sClient.Create(ctx, paddlesvc)
+			Expect(err).NotTo(HaveOccurred(), "failed to create test PaddleService resource")
 
 			deployment := apps.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      paddle.Spec.DeploymentName,
-					Namespace: paddle.Namespace,
+					Name:      paddlesvc.Spec.DeploymentName,
+					Namespace: paddlesvc.Namespace,
 				},
 				Spec: apps.DeploymentSpec{
-					Replicas: paddle.Spec.Replicas,
+					Replicas: paddlesvc.Spec.Replicas,
 					Template: core.PodTemplateSpec{
 						Spec: core.PodSpec{
 							Containers: []core.Container{
 								{
-									Name:  paddle.Spec.RuntimeVersion,
-									Image: paddle.Spec.StorageURI,
+									Name:  paddlesvc.Spec.RuntimeVersion,
+									Image: paddlesvc.Spec.StorageURI,
 									Ports: []core.ContainerPort{
-										{ContainerPort: paddle.Spec.Port, Name: "http", Protocol: "TCP"},
+										{ContainerPort: paddlesvc.Spec.Port, Name: "http", Protocol: "TCP"},
 									},
 								},
 							},
@@ -78,55 +78,55 @@ var _ = Context("Inside of a new namespace", func() {
 				},
 			}
 			Eventually(
-				getResourceFunc(ctx, client.ObjectKey{Name: "deployment-name", Namespace: paddle.Namespace}, &deployment),
+				getResourceFunc(ctx, client.ObjectKey{Name: "deployment-name", Namespace: paddlesvc.Namespace}, &deployment),
 				time.Second*5, time.Millisecond*500).Should(BeNil())
 
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)))
 		})
 
 		It("should create a new Deployment resource with the specified name and two replicas if two is specified", func() {
-			paddle := &elasticservingv1.Paddle{
+			paddlesvc := &elasticservingv1.PaddleService{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testresource",
 					Namespace: ns.Name,
 				},
-				Spec: elasticservingv1.PaddleSpec{
+				Spec: elasticservingv1.PaddleServiceSpec{
 					DeploymentName: "deployment-name",
 					Replicas:       pointer.Int32Ptr(2),
-					RuntimeVersion: "paddle",
+					RuntimeVersion: "paddlesvc",
 					StorageURI:     "hub.baidubce.com/paddlepaddle/serving:latest",
 					Port:           9292,
 				},
 			}
 
-			err := k8sClient.Create(ctx, paddle)
-			Expect(err).NotTo(HaveOccurred(), "failed to create test Paddle resource")
+			err := k8sClient.Create(ctx, paddlesvc)
+			Expect(err).NotTo(HaveOccurred(), "failed to create test PaddleService resource")
 
 			deployment := &apps.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      paddle.Spec.DeploymentName,
-					Namespace: paddle.Namespace,
+					Name:      paddlesvc.Spec.DeploymentName,
+					Namespace: paddlesvc.Namespace,
 				},
 				Spec: apps.DeploymentSpec{
-					Replicas: paddle.Spec.Replicas,
+					Replicas: paddlesvc.Spec.Replicas,
 					Selector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
-							"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+							"elastic-serving.paddlepaddle.org/deployment-name": paddlesvc.Spec.DeploymentName,
 						},
 					},
 					Template: core.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{
-								"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+								"elastic-serving.paddlepaddle.org/deployment-name": paddlesvc.Spec.DeploymentName,
 							},
 						},
 						Spec: core.PodSpec{
 							Containers: []core.Container{
 								{
-									Name:  paddle.Spec.RuntimeVersion,
-									Image: paddle.Spec.StorageURI,
+									Name:  paddlesvc.Spec.RuntimeVersion,
+									Image: paddlesvc.Spec.StorageURI,
 									Ports: []core.ContainerPort{
-										{ContainerPort: paddle.Spec.Port, Name: "http", Protocol: "TCP"},
+										{ContainerPort: paddlesvc.Spec.Port, Name: "http", Protocol: "TCP"},
 									},
 								},
 							},
@@ -135,62 +135,62 @@ var _ = Context("Inside of a new namespace", func() {
 				},
 			}
 			Eventually(
-				getResourceFunc(ctx, client.ObjectKey{Name: "deployment-name", Namespace: paddle.Namespace}, deployment),
+				getResourceFunc(ctx, client.ObjectKey{Name: "deployment-name", Namespace: paddlesvc.Namespace}, deployment),
 				time.Second*5, time.Millisecond*500).Should(BeNil())
 
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(2)))
 		})
 
-		It("should allow updating the replicas count after creating a Paddle resource", func() {
+		It("should allow updating the replicas count after creating a PaddleService resource", func() {
 			deploymentObjectKey := client.ObjectKey{
 				Name:      "deployment-name",
 				Namespace: ns.Name,
 			}
-			paddleObjectKey := client.ObjectKey{
+			paddlesvcObjectKey := client.ObjectKey{
 				Name:      "testresource",
 				Namespace: ns.Name,
 			}
-			paddle := &elasticservingv1.Paddle{
+			paddlesvc := &elasticservingv1.PaddleService{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      paddleObjectKey.Name,
-					Namespace: paddleObjectKey.Namespace,
+					Name:      paddlesvcObjectKey.Name,
+					Namespace: paddlesvcObjectKey.Namespace,
 				},
-				Spec: elasticservingv1.PaddleSpec{
+				Spec: elasticservingv1.PaddleServiceSpec{
 					DeploymentName: deploymentObjectKey.Name,
-					RuntimeVersion: "paddle",
+					RuntimeVersion: "paddlesvc",
 					StorageURI:     "hub.baidubce.com/paddlepaddle/serving:latest",
 					Port:           9292,
 				},
 			}
 
-			err := k8sClient.Create(ctx, paddle)
-			Expect(err).NotTo(HaveOccurred(), "failed to create test Paddle resource")
+			err := k8sClient.Create(ctx, paddlesvc)
+			Expect(err).NotTo(HaveOccurred(), "failed to create test PaddleService resource")
 
 			deployment := &apps.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      paddle.Spec.DeploymentName,
-					Namespace: paddle.Namespace,
+					Name:      paddlesvc.Spec.DeploymentName,
+					Namespace: paddlesvc.Namespace,
 				},
 				Spec: apps.DeploymentSpec{
-					Replicas: paddle.Spec.Replicas,
+					Replicas: paddlesvc.Spec.Replicas,
 					Selector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
-							"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+							"elastic-serving.paddlepaddle.org/deployment-name": paddlesvc.Spec.DeploymentName,
 						},
 					},
 					Template: core.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{
-								"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+								"elastic-serving.paddlepaddle.org/deployment-name": paddlesvc.Spec.DeploymentName,
 							},
 						},
 						Spec: core.PodSpec{
 							Containers: []core.Container{
 								{
-									Name:  paddle.Spec.RuntimeVersion,
-									Image: paddle.Spec.StorageURI,
+									Name:  paddlesvc.Spec.RuntimeVersion,
+									Image: paddlesvc.Spec.StorageURI,
 									Ports: []core.ContainerPort{
-										{ContainerPort: paddle.Spec.Port, Name: "http", Protocol: "TCP"},
+										{ContainerPort: paddlesvc.Spec.Port, Name: "http", Protocol: "TCP"},
 									},
 								},
 							},
@@ -204,12 +204,12 @@ var _ = Context("Inside of a new namespace", func() {
 
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)), "replica count should be equal to 1")
 
-			err = k8sClient.Get(ctx, paddleObjectKey, paddle)
-			Expect(err).NotTo(HaveOccurred(), "failed to retrieve Paddle resource")
+			err = k8sClient.Get(ctx, paddlesvcObjectKey, paddlesvc)
+			Expect(err).NotTo(HaveOccurred(), "failed to retrieve PaddleService resource")
 
-			paddle.Spec.Replicas = pointer.Int32Ptr(2)
-			err = k8sClient.Update(ctx, paddle)
-			Expect(err).NotTo(HaveOccurred(), "failed to Update Paddle resource")
+			paddlesvc.Spec.Replicas = pointer.Int32Ptr(2)
+			err = k8sClient.Update(ctx, paddlesvc)
+			Expect(err).NotTo(HaveOccurred(), "failed to Update PaddleService resource")
 
 			Eventually(getDeploymentReplicasFunc(ctx, deploymentObjectKey)).
 				Should(Equal(int32(2)), "expected Deployment resource to be scale to 2 replicas")
@@ -224,51 +224,51 @@ var _ = Context("Inside of a new namespace", func() {
 				Name:      "new-deployment",
 				Namespace: ns.Name,
 			}
-			paddleObjectKey := client.ObjectKey{
+			paddlesvcObjectKey := client.ObjectKey{
 				Name:      "testresource",
 				Namespace: ns.Name,
 			}
-			paddle := &elasticservingv1.Paddle{
+			paddlesvc := &elasticservingv1.PaddleService{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      paddleObjectKey.Name,
-					Namespace: paddleObjectKey.Namespace,
+					Name:      paddlesvcObjectKey.Name,
+					Namespace: paddlesvcObjectKey.Namespace,
 				},
-				Spec: elasticservingv1.PaddleSpec{
+				Spec: elasticservingv1.PaddleServiceSpec{
 					DeploymentName: deploymentObjectKey.Name,
-					RuntimeVersion: "paddle",
+					RuntimeVersion: "paddlesvc",
 					StorageURI:     "hub.baidubce.com/paddlepaddle/serving:latest",
 					Port:           9292,
 				},
 			}
 
-			err := k8sClient.Create(ctx, paddle)
-			Expect(err).NotTo(HaveOccurred(), "failed to create test Paddle resource")
+			err := k8sClient.Create(ctx, paddlesvc)
+			Expect(err).NotTo(HaveOccurred(), "failed to create test PaddleService resource")
 
 			deployment := &apps.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      paddle.Spec.DeploymentName,
-					Namespace: paddle.Namespace,
+					Name:      paddlesvc.Spec.DeploymentName,
+					Namespace: paddlesvc.Namespace,
 				},
 				Spec: apps.DeploymentSpec{
-					Replicas: paddle.Spec.Replicas,
+					Replicas: paddlesvc.Spec.Replicas,
 					Selector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
-							"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+							"elastic-serving.paddlepaddle.org/deployment-name": paddlesvc.Spec.DeploymentName,
 						},
 					},
 					Template: core.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{
-								"elastic-serving.paddlepaddle.org/deployment-name": paddle.Spec.DeploymentName,
+								"elastic-serving.paddlepaddle.org/deployment-name": paddlesvc.Spec.DeploymentName,
 							},
 						},
 						Spec: core.PodSpec{
 							Containers: []core.Container{
 								{
-									Name:  paddle.Spec.RuntimeVersion,
-									Image: paddle.Spec.StorageURI,
+									Name:  paddlesvc.Spec.RuntimeVersion,
+									Image: paddlesvc.Spec.StorageURI,
 									Ports: []core.ContainerPort{
-										{ContainerPort: paddle.Spec.Port, Name: "http", Protocol: "TCP"},
+										{ContainerPort: paddlesvc.Spec.Port, Name: "http", Protocol: "TCP"},
 									},
 								},
 							},
@@ -280,12 +280,12 @@ var _ = Context("Inside of a new namespace", func() {
 				getResourceFunc(ctx, deploymentObjectKey, deployment),
 				time.Second*5, time.Millisecond*500).Should(BeNil(), "deployment resource should exist")
 
-			err = k8sClient.Get(ctx, paddleObjectKey, paddle)
-			Expect(err).NotTo(HaveOccurred(), "failed to retrieve Paddle resource")
+			err = k8sClient.Get(ctx, paddlesvcObjectKey, paddlesvc)
+			Expect(err).NotTo(HaveOccurred(), "failed to retrieve PaddleService resource")
 
-			paddle.Spec.DeploymentName = newDeploymentObjectKey.Name
-			err = k8sClient.Update(ctx, paddle)
-			Expect(err).NotTo(HaveOccurred(), "failed to Update Paddle resource")
+			paddlesvc.Spec.DeploymentName = newDeploymentObjectKey.Name
+			err = k8sClient.Update(ctx, paddlesvc)
+			Expect(err).NotTo(HaveOccurred(), "failed to Update PaddleService resource")
 
 			Eventually(
 				getResourceFunc(ctx, deploymentObjectKey, deployment),
