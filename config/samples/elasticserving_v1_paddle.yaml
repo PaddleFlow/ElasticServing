@@ -1,5 +1,5 @@
 apiVersion: elasticserving.paddlepaddle.org/v1
-kind: Paddle
+kind: PaddleService
 metadata:
   name: paddle-sample
 spec:
@@ -7,9 +7,10 @@ spec:
   resources:
     requests:
       cpu: 80m
-  deploymentName: paddle
+  deploymentName: paddleservice
   replicas: 1
-  storageUri: paddlepaddle/serving:latest
+  storageUri: hub.baidubce.com/paddlepaddle/serving:latest
   runtimeVersion: paddleserving
+  port: 9292
   # storageUri: nginx:latest
   # runtimeVersion: nginx

@@ -27,7 +27,7 @@ rules:
 - apiGroups:
   - elasticserving.paddlepaddle.org
   resources:
-  - paddles
+  - paddlesvcs
   verbs:
   - create
   - delete
@@ -39,7 +39,7 @@ rules:
 - apiGroups:
   - elasticserving.paddlepaddle.org
   resources:
-  - paddles/status
+  - paddlesvcs/status
   verbs:
   - get
   - patch

@@ -6,20 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.5
   creationTimestamp: null
-  name: paddles.elasticserving.paddlepaddle.org
+  name: paddleservices.elasticserving.paddlepaddle.org
 spec:
   group: elasticserving.paddlepaddle.org
   names:
-    kind: Paddle
-    listKind: PaddleList
-    plural: paddles
-    singular: paddle
+    kind: PaddleService
+    listKind: PaddleServiceList
+    plural: paddleservices
+    singular: paddleservice
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: Paddle is the Schema for the paddles API
+        description: PaddleService is the Schema for the paddles API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,7 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: PaddleSpec defines the desired state of Paddle
+            description: PaddleServiceSpec defines the desired state of PaddleService
             properties:
               deploymentName:
                 maxLength: 64
@@ -83,7 +83,7 @@ spec:
             - deploymentName
             type: object
           status:
-            description: PaddleStatus defines the observed state of Paddle
+            description: PaddleServiceStatus defines the observed state of PaddleService
             properties:
               canaryTraffic:
                 description: Traffic percentage that goes to canary services

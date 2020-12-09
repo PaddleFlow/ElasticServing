@@ -26,8 +26,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	elasticservingv1 "ElasticServing/api/v1"
-	"ElasticServing/controllers"
+	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
+	controllers "ElasticServing/pkg/controllers/elasticserving"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -40,6 +40,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = elasticservingv1.AddToScheme(scheme)
+
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -66,9 +67,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.PaddleReconciler{
+	if err = (&controllers.PaddleServiceReconciler{
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("Paddle"),
+		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("paddle-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Paddle")
