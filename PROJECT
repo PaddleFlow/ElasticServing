@@ -3,6 +3,6 @@ multigroup: true
 repo: ElasticServing
 resources:
 - group: elasticserving
-  kind: Paddle
+  kind: PaddleService
   version: v1
 version: "2"

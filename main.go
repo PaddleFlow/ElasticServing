@@ -69,11 +69,11 @@ func main() {
 
 	if err = (&controllers.PaddleServiceReconciler{
 		Client:   mgr.GetClient(),
-		Log:      ctrl.Log.WithName("controllers").WithName("Paddle"),
+		Log:      ctrl.Log.WithName("controllers").WithName("PaddleService"),
 		Scheme:   mgr.GetScheme(),
-		Recorder: mgr.GetEventRecorderFor("paddle-controller"),
+		Recorder: mgr.GetEventRecorderFor("paddleflow_service-controller"),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Paddle")
+		setupLog.Error(err, "unable to create controller", "controller", "PaddleService")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
