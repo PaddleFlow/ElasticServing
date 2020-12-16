@@ -18,7 +18,7 @@ func (r *PaddleServiceReconciler) cleanupOwnedResources(ctx context.Context, log
 
 	// List all deployment resources owned by this paddlesvc
 	var deployments apps.DeploymentList
-	if err := r.List(ctx, &deployments, client.InNamespace(paddlesvc.Namespace), client.MatchingField(deploymentOwnerKey, paddlesvc.Name)); err != nil {
+	if err := r.List(ctx, &deployments, client.InNamespace(paddlesvc.Namespace)); err != nil {
 		return err
 	}
 
@@ -125,7 +125,3 @@ func buildDeployment(paddlesvc elasticservingv1.PaddleService) *apps.Deployment 
 	}
 	return &deployment
 }
-
-var (
-	deploymentOwnerKey = ".metadata.controller"
-)

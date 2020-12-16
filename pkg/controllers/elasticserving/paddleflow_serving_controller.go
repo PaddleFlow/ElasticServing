@@ -25,7 +25,6 @@ import (
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -154,20 +153,6 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 // }
 
 func (r *PaddleServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(&apps.Deployment{}, deploymentOwnerKey, func(rawObj runtime.Object) []string {
-		// grab the Deployment object, extract the owner...
-		depl := rawObj.(*apps.Deployment)
-		owner := metav1.GetControllerOf(depl)
-		if owner == nil {
-			return nil
-		}
-		if owner.APIVersion != elasticservingv1.GroupVersion.String() || owner.Kind != "paddlesvc" {
-			return nil
-		}
-		return []string{owner.Name}
-	}); err != nil {
-		return err
-	}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&elasticservingv1.PaddleService{}).
