@@ -20,6 +20,7 @@ import (
 	"context"
 
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
+	"ElasticServing/pkg/controllers/elasticserving/reconcilers/istio"
 
 	"github.com/go-logr/logr"
 	apps "k8s.io/api/apps/v1"
@@ -29,6 +30,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // PaddleServiceReconciler reconciles a PaddleService object
@@ -139,6 +141,14 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	if r.Client.Status().Update(ctx, &paddlesvc); err != nil {
 		log.Error(err, "failed to update PaddleService status")
 		return ctrl.Result{}, err
+	}
+
+	reconciler := istio.NewVirtualServiceReconciler(r.Client, r.Scheme, nil)
+
+	if err := reconciler.Reconcile(&paddlesvc); err != nil {
+		r.Log.Error(err, "Failed to reconcile")
+		r.Recorder.Eventf(&paddlesvc, core.EventTypeWarning, "InternalError", err.Error())
+		return reconcile.Result{}, err
 	}
 
 	log.Info("resource status synced")
