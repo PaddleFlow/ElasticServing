@@ -20,6 +20,7 @@ import (
 	"flag"
 	"os"
 
+	istio "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -40,6 +41,8 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = elasticservingv1.AddToScheme(scheme)
+
+	_ = istio.AddToScheme(scheme)
 
 	// +kubebuilder:scaffold:scheme
 }
