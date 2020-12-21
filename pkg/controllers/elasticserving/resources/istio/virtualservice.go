@@ -22,7 +22,7 @@ type VirtualServiceBuilder struct {
 func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1.PaddleService) v1alpha3.VirtualService {
 	clusterDomain := "cluster.local"
 	prefix := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
-	// rewrite := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
+	rewrite := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
 
 	if clusterDomainFromEnv, ok := os.LookupEnv("CLUSTER_DOMAIN"); ok {
 		clusterDomain = clusterDomainFromEnv
@@ -68,6 +68,9 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 								},
 							},
 						},
+					},
+					Rewrite: &istiov1alpha3.HTTPRewrite{
+						Uri: rewrite,
 					},
 				},
 			},
