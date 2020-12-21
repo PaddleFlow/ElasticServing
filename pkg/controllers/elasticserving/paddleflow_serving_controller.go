@@ -23,6 +23,7 @@ import (
 	"ElasticServing/pkg/controllers/elasticserving/reconcilers/istio"
 
 	"github.com/go-logr/logr"
+	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -146,7 +147,7 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	reconciler := istio.NewVirtualServiceReconciler(r.Client, r.Scheme, nil)
 
 	if err := reconciler.Reconcile(&paddlesvc); err != nil {
-		r.Log.Error(err, "Failed to reconcile")
+		r.Log.Error(err, "Failed to finish istio reconcile")
 		r.Recorder.Eventf(&paddlesvc, core.EventTypeWarning, "InternalError", err.Error())
 		return reconcile.Result{}, err
 	}
@@ -167,5 +168,6 @@ func (r *PaddleServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&elasticservingv1.PaddleService{}).
 		Owns(&apps.Deployment{}).
+		Owns(&v1alpha3.VirtualService{}).
 		Complete(r)
 }
