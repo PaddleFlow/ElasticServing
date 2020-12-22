@@ -7,6 +7,7 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
+	istio.io/api v0.0.0-20201123152548-197f11e4ea09
 	istio.io/client-go v1.8.1
 	// istio.io/client-go v0.0.0-20201125195900-beadfa935a0a
 	k8s.io/api v0.18.2
