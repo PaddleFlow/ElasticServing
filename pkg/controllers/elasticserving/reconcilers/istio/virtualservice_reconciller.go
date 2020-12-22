@@ -5,7 +5,7 @@ import (
 	"context"
 	"reflect"
 
-	"istio.io/api/networking/v1alpha3"
+	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	core "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -58,6 +58,10 @@ func (r *VirtualServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleS
 			log.Info("Creating Virtual Service", "namespace", desiredVs.Namespace, "name", desiredVs.Name)
 			err = r.client.Create(context.TODO(), desiredVs)
 		}
+		return err
+	}
+
+	if err = r.CompAndCopyVs(desiredVs, existingVs); err != nil {
 		return err
 	}
 

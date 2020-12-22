@@ -19,7 +19,7 @@ type VirtualServiceBuilder struct {
 	ingressConfig *IngressConfig
 }
 
-func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1.PaddleService) v1alpha3.VirtualService {
+func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1.PaddleService) *v1alpha3.VirtualService {
 	clusterDomain := "cluster.local"
 	prefix := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
 	rewrite := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
@@ -77,5 +77,5 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 		},
 	}
 
-	return vs
+	return &vs
 }
