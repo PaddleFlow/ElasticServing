@@ -2,10 +2,16 @@ package istio
 
 import (
 	"ElasticServing/pkg/controllers/elasticserving/resources/istio"
+	"context"
+	"reflect"
 
+	"istio.io/api/networking/v1alpha3"
 	core "k8s.io/api/core/v1"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 
@@ -40,5 +46,33 @@ func NewVirtualServiceReconciler(client client.Client, scheme *runtime.Scheme, c
 
 func (r *VirtualServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService) error {
 
+	desiredVs := r.serviceBuilder.CreateVirtualService(paddlesvc)
+	if err := ctrl.SetControllerReference(paddlesvc, desiredVs, r.scheme); err != nil {
+		return err
+	}
+
+	existingVs := &v1alpha3.VirtualService{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: desiredVs.Name, Namespace: desiredVs.Namespace}, existingVs)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Virtual Service", "namespace", desiredVs.Namespace, "name", desiredVs.Name)
+			err = r.client.Create(context.TODO(), desiredVs)
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (r *VirtualServiceReconciler) CompAndCopyVs(desiredVs *v1alpha3.VirtualService, existingVs *v1alpha3.VirtualService) error {
+	if requireCopy := reflect.DeepEqual(desiredVs.Spec, existingVs.Spec); requireCopy == true {
+		log.Info("Reconciling virtual service")
+		log.Info("Updating virtual service", "namespace", existingVs.Namespace, "name", existingVs.Name)
+		existingVs.Spec = desiredVs.Spec
+		err := r.client.Update(context.TODO(), existingVs)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
