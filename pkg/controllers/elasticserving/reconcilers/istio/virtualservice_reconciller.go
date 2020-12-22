@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
-	core "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,11 +25,11 @@ type VirtualServiceReconciler struct {
 	serviceBuilder *istio.VirtualServiceBuilder
 }
 
-func NewVirtualServiceReconciler(client client.Client, scheme *runtime.Scheme, config *core.ConfigMap) *VirtualServiceReconciler {
+func NewVirtualServiceReconciler(client client.Client, scheme *runtime.Scheme) *VirtualServiceReconciler {
 	return &VirtualServiceReconciler{
 		client:         client,
 		scheme:         scheme,
-		serviceBuilder: nil,
+		serviceBuilder: istio.NewVirtualServiceBuilder(),
 	}
 }
 
@@ -73,6 +72,8 @@ func (r *VirtualServiceReconciler) CompAndCopyVs(desiredVs *v1alpha3.VirtualServ
 		log.Info("Reconciling virtual service")
 		log.Info("Updating virtual service", "namespace", existingVs.Namespace, "name", existingVs.Name)
 		existingVs.Spec = desiredVs.Spec
+		existingVs.ObjectMeta.Annotations = desiredVs.ObjectMeta.Annotations
+		existingVs.ObjectMeta.Labels = desiredVs.ObjectMeta.Labels
 		err := r.client.Update(context.TODO(), existingVs)
 		if err != nil {
 			return err

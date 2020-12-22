@@ -19,6 +19,14 @@ type VirtualServiceBuilder struct {
 	ingressConfig *IngressConfig
 }
 
+func NewVirtualServiceBuilder() *VirtualServiceBuilder {
+	ingressConfig := &IngressConfig{}
+	ingressConfig.IngressGateway = "paddleflow/paddleflow-gateway"
+	ingressConfig.IngressServiceName = "*"
+
+	return &VirtualServiceBuilder{ingressConfig: ingressConfig}
+}
+
 func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1.PaddleService) *v1alpha3.VirtualService {
 	clusterDomain := "cluster.local"
 	prefix := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
@@ -31,8 +39,10 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 
 	istioGateway := os.Getenv("ISTIO_GATEWAY")
 	if len(istioGateway) == 0 {
-		istioGateway = "paddleflow/paddleflow-gateway"
+		// istioGateway = "paddleflow/paddleflow-gateway"
+		istioGateway = r.ingressConfig.IngressGateway
 	}
+	host := r.ingressConfig.IngressServiceName
 
 	vs := v1alpha3.VirtualService{
 		TypeMeta: metav1.TypeMeta{
@@ -40,13 +50,13 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 			Kind:       "VirtualService",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      paddlesvc.Name,
-			Namespace: paddlesvc.Namespace,
-			// Labels:      paddlesvc.Labels,
-			// Annotations: paddlesvc.Annotations,
+			Name:        paddlesvc.Name,
+			Namespace:   paddlesvc.Namespace,
+			Labels:      paddlesvc.Labels,
+			Annotations: paddlesvc.Annotations,
 		},
 		Spec: istiov1alpha3.VirtualService{
-			Hosts:    []string{"*"},
+			Hosts:    []string{host},
 			Gateways: []string{istioGateway},
 			Http: []*istiov1alpha3.HTTPRoute{
 				{
