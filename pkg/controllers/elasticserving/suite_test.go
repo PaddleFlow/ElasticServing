@@ -143,9 +143,6 @@ func SetupTest(ctx context.Context, nsArray []*core.Namespace) *core.Namespace {
 	AfterEach(func() {
 		close(stopCh)
 
-		// err := k8sClient.Delete(ctx, ns)
-		// Expect(err).NotTo(HaveOccurred(), "failed to delete test namespace")
-
 	})
 
 	return ns

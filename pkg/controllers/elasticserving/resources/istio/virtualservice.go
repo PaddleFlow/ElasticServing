@@ -31,16 +31,8 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 	prefix := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
 	rewrite := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
 
-	// if clusterDomainFromEnv, ok := os.LookupEnv("CLUSTER_DOMAIN"); ok {
-	// 	clusterDomain = clusterDomainFromEnv
-	// }
 	service := fmt.Sprintf("%s.%s.svc.%s", paddlesvc.Name, paddlesvc.Namespace, clusterDomain)
 
-	// istioGateway := os.Getenv("ISTIO_GATEWAY")
-	// if len(istioGateway) == 0 {
-	// 	// istioGateway = "paddleflow/paddleflow-gateway"
-	// 	istioGateway = r.ingressConfig.IngressGateway
-	// }
 	istioGateway := r.ingressConfig.IngressGateway
 	host := r.ingressConfig.IngressServiceName
 
