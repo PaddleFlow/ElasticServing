@@ -49,6 +49,7 @@ func (r *VirtualServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleS
 	if err := ctrl.SetControllerReference(paddlesvc, desiredVs, r.scheme); err != nil {
 		return err
 	}
+	log.Info("Desired Virtual Service created successfully")
 
 	existingVs := &v1alpha3.VirtualService{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Name: desiredVs.Name, Namespace: desiredVs.Namespace}, existingVs)
@@ -59,6 +60,7 @@ func (r *VirtualServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleS
 		}
 		return err
 	}
+	log.Info("Existing Virtual Service created successfully")
 
 	if err = r.CompAndCopyVs(desiredVs, existingVs); err != nil {
 		return err

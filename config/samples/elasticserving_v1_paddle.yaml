@@ -8,7 +8,7 @@ spec:
     requests:
       cpu: 80m
   deploymentName: paddleservice
-  replicas: 3
+  replicas: 2
   storageUri: hub.baidubce.com/paddlepaddle/serving:latest
   runtimeVersion: paddleserving
   port: 9292
