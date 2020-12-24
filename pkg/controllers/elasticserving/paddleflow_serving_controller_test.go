@@ -34,7 +34,8 @@ import (
 
 var _ = Context("Inside of a new namespace", func() {
 	ctx := context.TODO()
-	ns := SetupTest(ctx)
+	var nsArray []*core.Namespace
+	ns := SetupTest(ctx, nsArray)
 
 	Describe("when no existing resources exist", func() {
 
@@ -296,6 +297,13 @@ var _ = Context("Inside of a new namespace", func() {
 				time.Second*5, time.Millisecond*500).Should(BeNil(), "new deployment resource should be created")
 		})
 	})
+
+	for _, ns := range nsArray {
+		err := k8sClient.Delete(ctx, ns)
+		Expect(err).NotTo(HaveOccurred(), "failed to delete test namespace")
+
+	}
+
 })
 
 func getResourceFunc(ctx context.Context, key client.ObjectKey, obj runtime.Object) func() error {

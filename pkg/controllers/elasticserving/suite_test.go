@@ -25,9 +25,15 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/prometheus/common/log"
+
+	"github.com/gogo/protobuf/proto"
+	"github.com/onsi/gomega/gexec"
+	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -60,7 +66,8 @@ var _ = BeforeSuite(func(done Done) {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("../../..", "config", "crd", "bases")},
+		CRDDirectoryPaths:  []string{filepath.Join("../../..", "config", "crd", "bases")},
+		UseExistingCluster: proto.Bool(true),
 	}
 
 	var err error
@@ -68,7 +75,14 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
+	clientgoscheme.AddToScheme(scheme.Scheme)
+
 	err = elasticservingv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	if err = v1alpha3.AddToScheme(scheme.Scheme); err != nil {
+		log.Error(err, "Failed to add istio scheme")
+	}
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme
@@ -82,6 +96,7 @@ var _ = BeforeSuite(func(done Done) {
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
+	gexec.KillAndWait(5 * time.Second)
 	err := testEnv.Stop()
 	Expect(err).ToNot(HaveOccurred())
 })
@@ -92,7 +107,7 @@ var _ = AfterSuite(func() {
 // * starting the 'PaddleService Reconciler'
 // * stopping the 'PaddleService Reconciler" after the test ends
 // Call this function at the start of each of your tests.
-func SetupTest(ctx context.Context) *core.Namespace {
+func SetupTest(ctx context.Context, nsArray []*core.Namespace) *core.Namespace {
 	var stopCh chan struct{}
 	ns := &core.Namespace{}
 
@@ -101,22 +116,25 @@ func SetupTest(ctx context.Context) *core.Namespace {
 		*ns = core.Namespace{
 			ObjectMeta: metav1.ObjectMeta{Name: "testns-" + randStringRunes(5)},
 		}
+		nsArray = append(nsArray, ns)
 
 		err := k8sClient.Create(ctx, ns)
 		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
 
-		mgr, err := ctrl.NewManager(cfg, ctrl.Options{})
+		mgr, err := ctrl.NewManager(cfg, ctrl.Options{Scheme: scheme.Scheme})
 		Expect(err).NotTo(HaveOccurred(), "failed to create manager")
 
 		controller := &PaddleServiceReconciler{
 			Client:   mgr.GetClient(),
 			Log:      logf.Log,
+			Scheme:   mgr.GetScheme(),
 			Recorder: mgr.GetEventRecorderFor("paddlesvc-controller"),
 		}
 		err = controller.SetupWithManager(mgr)
 		Expect(err).NotTo(HaveOccurred(), "failed to setup controller")
 
 		go func() {
+			// defer GinkgoRecover()
 			err := mgr.Start(stopCh)
 			Expect(err).NotTo(HaveOccurred(), "failed to start manager")
 		}()
@@ -125,8 +143,6 @@ func SetupTest(ctx context.Context) *core.Namespace {
 	AfterEach(func() {
 		close(stopCh)
 
-		err := k8sClient.Delete(ctx, ns)
-		Expect(err).NotTo(HaveOccurred(), "failed to delete test namespace")
 	})
 
 	return ns

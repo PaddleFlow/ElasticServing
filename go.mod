@@ -4,9 +4,11 @@ go 1.13
 
 require (
 	github.com/go-logr/logr v0.1.0
-	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/gogo/protobuf v1.3.1
+	github.com/google/go-cmp v0.3.0
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
+	github.com/prometheus/common v0.4.1
 	istio.io/api v0.0.0-20201123152548-197f11e4ea09
 	istio.io/client-go v1.8.1
 	// istio.io/client-go v0.0.0-20201125195900-beadfa935a0a
