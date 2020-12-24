@@ -34,11 +34,9 @@ import (
 
 var _ = Context("Inside of a new namespace", func() {
 	ctx := context.TODO()
-	var nsArray []*core.Namespace
-	ns := SetupTest(ctx, nsArray)
+	ns := SetupNs(ctx)
 
 	Describe("when no existing resources exist", func() {
-
 		It("should create a new Deployment resource with the specified name and one replica if none is provided", func() {
 			paddlesvc := &elasticservingv1.PaddleService{
 				ObjectMeta: metav1.ObjectMeta{
@@ -212,7 +210,8 @@ var _ = Context("Inside of a new namespace", func() {
 			err = k8sClient.Update(ctx, paddlesvc)
 			Expect(err).NotTo(HaveOccurred(), "failed to Update PaddleService resource")
 
-			Eventually(getDeploymentReplicasFunc(ctx, deploymentObjectKey)).
+			Eventually(getDeploymentReplicasFunc(ctx, deploymentObjectKey),
+				time.Second*5, time.Millisecond*500).
 				Should(Equal(int32(2)), "expected Deployment resource to be scale to 2 replicas")
 		})
 
@@ -297,12 +296,6 @@ var _ = Context("Inside of a new namespace", func() {
 				time.Second*5, time.Millisecond*500).Should(BeNil(), "new deployment resource should be created")
 		})
 	})
-
-	for _, ns := range nsArray {
-		err := k8sClient.Delete(ctx, ns)
-		Expect(err).NotTo(HaveOccurred(), "failed to delete test namespace")
-
-	}
 
 })
 
