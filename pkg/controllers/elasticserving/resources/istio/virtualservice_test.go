@@ -12,14 +12,24 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	serviceName  = "testresource"
+	namespace    = "test"
+	prefix       = "/paddlepaddle/test/testresource/"
+	rewrite      = "/paddlepaddle/test/testresource/"
+	service      = "testresource.test.svc.cluster.local"
+	host         = "*"
+	istioGateway = "paddleflow/paddleflow-gateway"
+
+	svcName        = "testresource"
+	svcNs          = "test"
+	deplName       = "deployment-name"
+	runtimeVersion = "paddlesvc"
+	storageURI     = "hub.baidubce.com/paddlepaddle/serving:latest"
+	deplPort       = 9292
+)
+
 func TestCreateVirtualService(t *testing.T) {
-	serviceName := "testresource"
-	namespace := "test"
-	prefix := "/paddlepaddle/test/testresource/"
-	rewrite := "/paddlepaddle/test/testresource/"
-	service := "testresource.test.svc.cluster.local"
-	host := "*"
-	istioGateway := "paddleflow/paddleflow-gateway"
 
 	cases := []struct {
 		name       string
@@ -68,21 +78,21 @@ func TestCreateVirtualService(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			paddlesvc := &elasticservingv1.PaddleService{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "testresource",
-					Namespace: "test",
+					Name:      svcName,
+					Namespace: svcNs,
 				},
 				Spec: elasticservingv1.PaddleServiceSpec{
-					DeploymentName: "deployment-name",
-					RuntimeVersion: "paddlesvc",
-					StorageURI:     "hub.baidubce.com/paddlepaddle/serving:latest",
-					Port:           9292,
+					DeploymentName: deplName,
+					RuntimeVersion: runtimeVersion,
+					StorageURI:     storageURI,
+					Port:           deplPort,
 				},
 			}
 
 			serviceBuilder := VirtualServiceBuilder{
 				ingressConfig: &IngressConfig{
-					IngressGateway:     "paddleflow/paddleflow-gateway",
-					IngressServiceName: "*",
+					IngressGateway:     istioGateway,
+					IngressServiceName: host,
 				},
 			}
 
