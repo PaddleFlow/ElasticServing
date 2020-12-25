@@ -157,12 +157,6 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	return ctrl.Result{}, nil
 }
 
-// func (r *PaddleServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-// 	return ctrl.NewControllerManagedBy(mgr).
-// 		For(&elasticservingv1.PaddleService{}).
-// 		Complete(r)
-// }
-
 func (r *PaddleServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).

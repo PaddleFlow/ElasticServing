@@ -32,24 +32,35 @@ import (
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
 )
 
+const (
+	timeout               = time.Second * 5
+	pollingInterval       = time.Millisecond * 500
+	svcName               = "test-service"
+	deplName              = "deployment-name"
+	newDeplName           = "new-deployment-name"
+	runtimeVersion        = "paddlesvc"
+	storageURI            = "hub.baidubce.com/paddlepaddle/serving:latest"
+	deplPort              = 9292
+	containerPortName     = "http"
+	containerPortProtocal = "TCP"
+)
+
 var _ = Context("Inside of a new namespace", func() {
 	ctx := context.TODO()
-	var nsArray []*core.Namespace
-	ns := SetupTest(ctx, nsArray)
+	ns := SetupNs(ctx)
 
 	Describe("when no existing resources exist", func() {
-
 		It("should create a new Deployment resource with the specified name and one replica if none is provided", func() {
 			paddlesvc := &elasticservingv1.PaddleService{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "testresource",
+					Name:      svcName,
 					Namespace: ns.Name,
 				},
 				Spec: elasticservingv1.PaddleServiceSpec{
-					DeploymentName: "deployment-name",
-					RuntimeVersion: "paddlesvc",
-					StorageURI:     "hub.baidubce.com/paddlepaddle/serving:latest",
-					Port:           9292,
+					DeploymentName: deplName,
+					RuntimeVersion: runtimeVersion,
+					StorageURI:     storageURI,
+					Port:           deplPort,
 				},
 			}
 
@@ -70,7 +81,7 @@ var _ = Context("Inside of a new namespace", func() {
 									Name:  paddlesvc.Spec.RuntimeVersion,
 									Image: paddlesvc.Spec.StorageURI,
 									Ports: []core.ContainerPort{
-										{ContainerPort: paddlesvc.Spec.Port, Name: "http", Protocol: "TCP"},
+										{ContainerPort: paddlesvc.Spec.Port, Name: containerPortName, Protocol: containerPortProtocal},
 									},
 								},
 							},
@@ -79,8 +90,8 @@ var _ = Context("Inside of a new namespace", func() {
 				},
 			}
 			Eventually(
-				getResourceFunc(ctx, client.ObjectKey{Name: "deployment-name", Namespace: paddlesvc.Namespace}, &deployment),
-				time.Second*5, time.Millisecond*500).Should(BeNil())
+				getResourceFunc(ctx, client.ObjectKey{Name: deplName, Namespace: paddlesvc.Namespace}, &deployment),
+				timeout, pollingInterval).Should(BeNil())
 
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)))
 		})
@@ -88,15 +99,15 @@ var _ = Context("Inside of a new namespace", func() {
 		It("should create a new Deployment resource with the specified name and two replicas if two is specified", func() {
 			paddlesvc := &elasticservingv1.PaddleService{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "testresource",
+					Name:      svcName,
 					Namespace: ns.Name,
 				},
 				Spec: elasticservingv1.PaddleServiceSpec{
-					DeploymentName: "deployment-name",
+					DeploymentName: deplName,
 					Replicas:       pointer.Int32Ptr(2),
-					RuntimeVersion: "paddlesvc",
-					StorageURI:     "hub.baidubce.com/paddlepaddle/serving:latest",
-					Port:           9292,
+					RuntimeVersion: runtimeVersion,
+					StorageURI:     storageURI,
+					Port:           deplPort,
 				},
 			}
 
@@ -127,7 +138,7 @@ var _ = Context("Inside of a new namespace", func() {
 									Name:  paddlesvc.Spec.RuntimeVersion,
 									Image: paddlesvc.Spec.StorageURI,
 									Ports: []core.ContainerPort{
-										{ContainerPort: paddlesvc.Spec.Port, Name: "http", Protocol: "TCP"},
+										{ContainerPort: paddlesvc.Spec.Port, Name: containerPortName, Protocol: containerPortProtocal},
 									},
 								},
 							},
@@ -136,19 +147,19 @@ var _ = Context("Inside of a new namespace", func() {
 				},
 			}
 			Eventually(
-				getResourceFunc(ctx, client.ObjectKey{Name: "deployment-name", Namespace: paddlesvc.Namespace}, deployment),
-				time.Second*5, time.Millisecond*500).Should(BeNil())
+				getResourceFunc(ctx, client.ObjectKey{Name: deplName, Namespace: paddlesvc.Namespace}, deployment),
+				timeout, pollingInterval).Should(BeNil())
 
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(2)))
 		})
 
 		It("should allow updating the replicas count after creating a PaddleService resource", func() {
 			deploymentObjectKey := client.ObjectKey{
-				Name:      "deployment-name",
+				Name:      deplName,
 				Namespace: ns.Name,
 			}
 			paddlesvcObjectKey := client.ObjectKey{
-				Name:      "testresource",
+				Name:      svcName,
 				Namespace: ns.Name,
 			}
 			paddlesvc := &elasticservingv1.PaddleService{
@@ -158,9 +169,9 @@ var _ = Context("Inside of a new namespace", func() {
 				},
 				Spec: elasticservingv1.PaddleServiceSpec{
 					DeploymentName: deploymentObjectKey.Name,
-					RuntimeVersion: "paddlesvc",
-					StorageURI:     "hub.baidubce.com/paddlepaddle/serving:latest",
-					Port:           9292,
+					RuntimeVersion: runtimeVersion,
+					StorageURI:     storageURI,
+					Port:           deplPort,
 				},
 			}
 
@@ -191,7 +202,7 @@ var _ = Context("Inside of a new namespace", func() {
 									Name:  paddlesvc.Spec.RuntimeVersion,
 									Image: paddlesvc.Spec.StorageURI,
 									Ports: []core.ContainerPort{
-										{ContainerPort: paddlesvc.Spec.Port, Name: "http", Protocol: "TCP"},
+										{ContainerPort: paddlesvc.Spec.Port, Name: containerPortName, Protocol: containerPortProtocal},
 									},
 								},
 							},
@@ -201,7 +212,7 @@ var _ = Context("Inside of a new namespace", func() {
 			}
 			Eventually(
 				getResourceFunc(ctx, deploymentObjectKey, deployment),
-				time.Second*5, time.Millisecond*500).Should(BeNil(), "deployment resource should exist")
+				timeout, pollingInterval).Should(BeNil(), "deployment resource should exist")
 
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)), "replica count should be equal to 1")
 
@@ -212,21 +223,22 @@ var _ = Context("Inside of a new namespace", func() {
 			err = k8sClient.Update(ctx, paddlesvc)
 			Expect(err).NotTo(HaveOccurred(), "failed to Update PaddleService resource")
 
-			Eventually(getDeploymentReplicasFunc(ctx, deploymentObjectKey)).
+			Eventually(getDeploymentReplicasFunc(ctx, deploymentObjectKey),
+				timeout, pollingInterval).
 				Should(Equal(int32(2)), "expected Deployment resource to be scale to 2 replicas")
 		})
 
 		It("should clean up an old Deployment resource if the deploymentName is changed", func() {
 			deploymentObjectKey := client.ObjectKey{
-				Name:      "deployment-name",
+				Name:      deplName,
 				Namespace: ns.Name,
 			}
 			newDeploymentObjectKey := client.ObjectKey{
-				Name:      "new-deployment",
+				Name:      newDeplName,
 				Namespace: ns.Name,
 			}
 			paddlesvcObjectKey := client.ObjectKey{
-				Name:      "testresource",
+				Name:      svcName,
 				Namespace: ns.Name,
 			}
 			paddlesvc := &elasticservingv1.PaddleService{
@@ -236,9 +248,9 @@ var _ = Context("Inside of a new namespace", func() {
 				},
 				Spec: elasticservingv1.PaddleServiceSpec{
 					DeploymentName: deploymentObjectKey.Name,
-					RuntimeVersion: "paddlesvc",
-					StorageURI:     "hub.baidubce.com/paddlepaddle/serving:latest",
-					Port:           9292,
+					RuntimeVersion: runtimeVersion,
+					StorageURI:     storageURI,
+					Port:           deplPort,
 				},
 			}
 
@@ -269,7 +281,7 @@ var _ = Context("Inside of a new namespace", func() {
 									Name:  paddlesvc.Spec.RuntimeVersion,
 									Image: paddlesvc.Spec.StorageURI,
 									Ports: []core.ContainerPort{
-										{ContainerPort: paddlesvc.Spec.Port, Name: "http", Protocol: "TCP"},
+										{ContainerPort: paddlesvc.Spec.Port, Name: containerPortName, Protocol: containerPortProtocal},
 									},
 								},
 							},
@@ -279,7 +291,7 @@ var _ = Context("Inside of a new namespace", func() {
 			}
 			Eventually(
 				getResourceFunc(ctx, deploymentObjectKey, deployment),
-				time.Second*5, time.Millisecond*500).Should(BeNil(), "deployment resource should exist")
+				timeout, pollingInterval).Should(BeNil(), "deployment resource should exist")
 
 			err = k8sClient.Get(ctx, paddlesvcObjectKey, paddlesvc)
 			Expect(err).NotTo(HaveOccurred(), "failed to retrieve PaddleService resource")
@@ -290,19 +302,13 @@ var _ = Context("Inside of a new namespace", func() {
 
 			Eventually(
 				getResourceFunc(ctx, deploymentObjectKey, deployment),
-				time.Second*5, time.Millisecond*500).ShouldNot(BeNil(), "old deployment resource should be deleted")
+				timeout, pollingInterval).ShouldNot(BeNil(), "old deployment resource should be deleted")
 
 			Eventually(
 				getResourceFunc(ctx, newDeploymentObjectKey, deployment),
-				time.Second*5, time.Millisecond*500).Should(BeNil(), "new deployment resource should be created")
+				timeout, pollingInterval).Should(BeNil(), "new deployment resource should be created")
 		})
 	})
-
-	for _, ns := range nsArray {
-		err := k8sClient.Delete(ctx, ns)
-		Expect(err).NotTo(HaveOccurred(), "failed to delete test namespace")
-
-	}
 
 })
 

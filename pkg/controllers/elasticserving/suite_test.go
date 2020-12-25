@@ -107,16 +107,15 @@ var _ = AfterSuite(func() {
 // * starting the 'PaddleService Reconciler'
 // * stopping the 'PaddleService Reconciler" after the test ends
 // Call this function at the start of each of your tests.
-func SetupTest(ctx context.Context, nsArray []*core.Namespace) *core.Namespace {
-	var stopCh chan struct{}
+func SetupNs(ctx context.Context) *core.Namespace {
 	ns := &core.Namespace{}
-
+	var stopCh chan struct{}
 	BeforeEach(func() {
 		stopCh = make(chan struct{})
+
 		*ns = core.Namespace{
 			ObjectMeta: metav1.ObjectMeta{Name: "testns-" + randStringRunes(5)},
 		}
-		nsArray = append(nsArray, ns)
 
 		err := k8sClient.Create(ctx, ns)
 		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
@@ -134,17 +133,17 @@ func SetupTest(ctx context.Context, nsArray []*core.Namespace) *core.Namespace {
 		Expect(err).NotTo(HaveOccurred(), "failed to setup controller")
 
 		go func() {
-			// defer GinkgoRecover()
 			err := mgr.Start(stopCh)
 			Expect(err).NotTo(HaveOccurred(), "failed to start manager")
 		}()
 	})
 
 	AfterEach(func() {
+
+		k8sClient.Delete(ctx, ns)
 		close(stopCh)
 
 	})
-
 	return ns
 }
 
