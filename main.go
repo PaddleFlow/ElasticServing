@@ -20,12 +20,14 @@ import (
 	"flag"
 	"os"
 
-	istio "istio.io/client-go/pkg/apis/networking/v1alpha3"
+	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
 	controllers "ElasticServing/pkg/controllers/elasticserving"
@@ -42,7 +44,9 @@ func init() {
 
 	_ = elasticservingv1.AddToScheme(scheme)
 
-	_ = istio.AddToScheme(scheme)
+	_ = v1alpha3.AddToScheme(scheme)
+
+	_ = knservingv1.AddToScheme(scheme)
 
 	// +kubebuilder:scaffold:scheme
 }
