@@ -3,8 +3,8 @@ package knative
 import (
 	"ElasticServing/pkg/controllers/elasticserving/resources/knative"
 
-	"github.com/docker/docker/client"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"

@@ -31,7 +31,7 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 	prefix := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
 	rewrite := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
 
-	service := fmt.Sprintf("%s.%s.svc.%s", paddlesvc.Name, paddlesvc.Namespace, clusterDomain)
+	service := fmt.Sprintf("%s.%s.svc.%s", paddlesvc.ObjectMeta.Name, paddlesvc.ObjectMeta.Namespace, clusterDomain)
 
 	istioGateway := r.ingressConfig.IngressGateway
 	host := r.ingressConfig.IngressServiceName
@@ -42,10 +42,10 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 			Kind:       "VirtualService",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        paddlesvc.Name,
-			Namespace:   paddlesvc.Namespace,
-			Labels:      paddlesvc.Labels,
-			Annotations: paddlesvc.Annotations,
+			Name:        paddlesvc.ObjectMeta.Name,
+			Namespace:   paddlesvc.ObjectMeta.Namespace,
+			Labels:      paddlesvc.ObjectMeta.Labels,
+			Annotations: paddlesvc.ObjectMeta.Annotations,
 		},
 		Spec: istiov1alpha3.VirtualService{
 			Hosts:    []string{host},
