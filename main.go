@@ -27,10 +27,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
-
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
 	controllers "ElasticServing/pkg/controllers/elasticserving"
+
+	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	// +kubebuilder:scaffold:imports
 )
 

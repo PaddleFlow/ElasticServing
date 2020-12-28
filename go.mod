@@ -9,7 +9,6 @@ require (
 	github.com/go-logr/logr v0.2.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/google/go-cmp v0.5.2
-	github.com/kubeflow/kfserving v0.4.1
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
 	github.com/opencontainers/go-digest v1.0.0 // indirect

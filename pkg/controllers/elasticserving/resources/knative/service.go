@@ -1,7 +1,6 @@
 package knative
 
 import (
-	"github.com/kubeflow/kfserving/pkg/utils"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
@@ -38,9 +37,9 @@ func (r *ServiceBuilder) CreateService(paddlesvc *elasticservingv1.PaddleService
 			ConfigurationSpec: knservingv1.ConfigurationSpec{
 				Template: knservingv1.RevisionTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
-						Labels: utils.Union(paddlesvc.ObjectMeta.Labels, map[string]string{
+						Labels: map[string]string{
 							"PaddleService": paddlesvc.ObjectMeta.Name,
-						}),
+						},
 					},
 					Spec: knservingv1.RevisionSpec{
 						PodSpec: core.PodSpec{
