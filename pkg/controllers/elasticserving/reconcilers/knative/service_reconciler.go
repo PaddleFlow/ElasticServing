@@ -3,6 +3,7 @@ package knative
 import (
 	"ElasticServing/pkg/controllers/elasticserving/resources/knative"
 
+	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -18,11 +19,11 @@ type ServiceReconciler struct {
 	serviceBuilder *knative.ServiceBuilder
 }
 
-func NewServiceReconciler(client client.Client, scheme *runtime.Scheme, paddlesvc *elasticservingv1.PaddleService) *ServiceReconciler {
+func NewServiceReconciler(client client.Client, scheme *runtime.Scheme, configMap *core.ConfigMap) *ServiceReconciler {
 	return &ServiceReconciler{
 		client:         client,
 		scheme:         scheme,
-		serviceBuilder: knative.NewServiceBuilder(paddlesvc),
+		serviceBuilder: knative.NewServiceBuilder(configMap),
 	}
 }
 
