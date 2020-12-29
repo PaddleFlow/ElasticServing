@@ -23,12 +23,15 @@ import (
 	"ElasticServing/pkg/controllers/elasticserving/reconcilers/istio"
 	"ElasticServing/pkg/controllers/elasticserving/reconcilers/knative"
 
+	"ElasticServing/pkg/constants"
+
 	"github.com/go-logr/logr"
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -67,6 +70,14 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	}
 
 	log.Info("Successfully fetching paddlesvc")
+
+	// Get ConfigMap
+	configMap := &core.ConfigMap{}
+	if err := r.Get(ctx, types.NamespacedName{Name: constants.PaddleServiceConfigName, Namespace: constants.PaddleServiceConfigNamespace}, configMap); err != nil {
+		log.Error(err, "Failed to find ConfigMap", "name", constants.PaddleServiceConfigName, "namespace", constants.PaddleServiceConfigNamespace)
+		// Error reading the object - requeue the request.
+		return ctrl.Result{}, err
+	}
 
 	if err := r.cleanupOwnedResources(ctx, log, &paddlesvc); err != nil {
 		log.Error(err, "failed to clean up old Deployment resources for this PaddleService")
