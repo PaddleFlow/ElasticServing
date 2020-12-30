@@ -18,3 +18,7 @@ var (
 	PaddleServiceDefaultMinScale = 1 // 0 if scale-to-zero is desired
 	PaddleServiceDefaultMaxScale = 0 // 0 means limitless
 )
+
+func DefaultServiceName(name string) string {
+	return name + "-knativeSVC"
+}

@@ -33,11 +33,9 @@ func NewServiceBuilder(configMap *core.ConfigMap) *ServiceBuilder {
 	return &ServiceBuilder{serviceConfig: serviceConfig}
 }
 
-func (r *ServiceBuilder) CreateService(paddlesvc *elasticservingv1.PaddleService) (*knservingv1.Service, error) {
-
+func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticservingv1.PaddleService) (*knservingv1.Service, error) {
 	metadata := paddlesvc.ObjectMeta
 	paddlesvcSpec := paddlesvc.Spec
-	serviceName := paddlesvc.ObjectMeta.Name + "-knativeSvc"
 	resources, err := r.buildResources(metadata, paddlesvcSpec)
 	if err != nil {
 		return nil, err
@@ -46,15 +44,15 @@ func (r *ServiceBuilder) CreateService(paddlesvc *elasticservingv1.PaddleService
 	service := &knservingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
-			Namespace: paddlesvc.ObjectMeta.Namespace,
-			Labels:    paddlesvc.ObjectMeta.Labels,
+			Namespace: paddlesvc.Namespace,
+			Labels:    paddlesvc.Labels,
 		},
 		Spec: knservingv1.ServiceSpec{
 			ConfigurationSpec: knservingv1.ConfigurationSpec{
 				Template: knservingv1.RevisionTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"PaddleService": paddlesvc.ObjectMeta.Name,
+							"PaddleService": paddlesvc.Name,
 						},
 					},
 					Spec: knservingv1.RevisionSpec{
