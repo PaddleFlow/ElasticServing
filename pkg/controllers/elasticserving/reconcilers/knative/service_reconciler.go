@@ -55,7 +55,6 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		return nil
 	}
 
-	// _, err => status, err
 	if _, err := r.reconcileService(modelMonitor, service); err != nil {
 		return err
 	}
