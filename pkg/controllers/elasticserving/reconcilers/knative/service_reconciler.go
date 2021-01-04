@@ -47,7 +47,7 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 	}
 
 	if service == nil {
-		if err = r.finalizeService(serviceName, modelMonitor.Namespace); err != nil {
+		if err = r.finalizeService(serviceName, paddlesvc.Namespace); err != nil {
 			return err
 		}
 
@@ -55,7 +55,7 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		return nil
 	}
 
-	if _, err := r.reconcileService(modelMonitor, service); err != nil {
+	if _, err := r.reconcileService(paddlesvc, service); err != nil {
 		return err
 	}
 
@@ -81,25 +81,25 @@ func (r *ServiceReconciler) finalizeService(serviceName, namespace string) error
 }
 
 func (r *ServiceReconciler) reconcileService(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service) (*knservingv1.ServiceStatus, error) {
-	// Set ModelMonitor as owner of desired service
-	if err := controllerutil.SetControllerReference(modelMonitor, desired, r.Scheme); err != nil {
+	// Set Paddlesvc as owner of desired service
+	if err := controllerutil.SetControllerReference(paddlesvc, desired, r.scheme); err != nil {
 		return nil, err
 	}
 
 	// Create service if does not exist
 	existing := &knservingv1.Service{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			r.Log.Info("Creating Knative Service", "namespace", desired.Namespace, "name", desired.Name)
-			return &desired.Status, r.Client.Create(context.TODO(), desired)
+			log.Info("Creating Knative Service", "namespace", desired.Namespace, "name", desired.Name)
+			return &desired.Status, r.client.Create(context.TODO(), desired)
 		}
 		return nil, err
 	}
 
 	// Return if no differences to reconcile.
 	if knativeServiceSemanticEquals(desired, existing) {
-		r.Log.Info("No differences found")
+		log.Info("No differences found")
 		return &existing.Status, nil
 	}
 
@@ -109,12 +109,12 @@ func (r *ServiceReconciler) reconcileService(paddlesvc *elasticservingv1.PaddleS
 		return &existing.Status, fmt.Errorf("Failed to diff Knative Service: %v", err)
 	}
 
-	r.Log.Info("Reconciling Knative Service diff (-desired, +observed):", "diff", diff)
-	r.Log.Info("Updating Knative Service", "namespace", desired.Namespace, "name", desired.Name)
+	log.Info("Reconciling Knative Service diff (-desired, +observed):", "diff", diff)
+	log.Info("Updating Knative Service", "namespace", desired.Namespace, "name", desired.Name)
 
 	existing.Spec.ConfigurationSpec = desired.Spec.ConfigurationSpec
 	existing.ObjectMeta.Labels = desired.ObjectMeta.Labels
-	if err := r.Client.Update(context.TODO(), existing); err != nil {
+	if err := r.client.Update(context.TODO(), existing); err != nil {
 		return &existing.Status, err
 	}
 

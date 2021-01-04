@@ -20,5 +20,5 @@ var (
 )
 
 func DefaultServiceName(name string) string {
-	return name + "-knativeSVC"
+	return name + "-service"
 }
