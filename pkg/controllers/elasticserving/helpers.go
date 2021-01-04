@@ -93,7 +93,7 @@ func buildDeployment(paddlesvc elasticservingv1.PaddleService) *apps.Deployment 
 	deployment := apps.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            paddlesvc.Spec.DeploymentName,
-			Namespace:       paddlesvc.Namespace,
+			Namespace:       paddlesvc.ObjectMeta.Namespace,
 			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(&paddlesvc, elasticservingv1.GroupVersion.WithKind("paddlesvc"))},
 		},
 		Spec: apps.DeploymentSpec{
