@@ -19,6 +19,7 @@ package v1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -48,12 +49,15 @@ type PaddleServiceSpec struct {
 type PaddleServiceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	duckv1beta1.Status `json:",inline"`
 	// URL of the InferenceService
 	URL string `json:"url,omitempty"`
 	// Traffic percentage that goes to default services
 	Traffic int `json:"traffic,omitempty"`
 	// Traffic percentage that goes to canary services
 	CanaryTraffic int `json:"canaryTraffic,omitempty"`
+	// Statuses for the default endpoints of the InferenceService
+	Default *StatusConfigurationSpec `json:"default,omitempty"`
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	Replicas int32 `json:"replicas,omitempty"`
@@ -79,6 +83,14 @@ type PaddleServiceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []PaddleService `json:"items"`
+}
+
+// StatusConfigurationSpec describes the state of the configuration receiving traffic.
+type StatusConfigurationSpec struct {
+	// Latest revision name that is in ready state
+	Name string `json:"name,omitempty"`
+	// Host name of the service
+	Hostname string `json:"host,omitempty"`
 }
 
 func init() {
