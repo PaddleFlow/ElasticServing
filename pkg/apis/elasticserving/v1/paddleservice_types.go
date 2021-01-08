@@ -19,6 +19,7 @@ package v1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -49,7 +50,7 @@ type PaddleServiceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// duckv1beta1.Status `json:",inline"`
+	duckv1beta1.Status `json:",inline"`
 	// URL of the PaddleService
 	URL string `json:"url,omitempty"`
 	// Traffic percentage that goes to default services
@@ -58,9 +59,9 @@ type PaddleServiceStatus struct {
 	CanaryTraffic int `json:"canaryTraffic,omitempty"`
 
 	// Statuses for the default endpoints of the PaddleService
-	// Default *StatusConfigurationSpec `json:"default,omitempty"`
+	Default *StatusConfigurationSpec `json:"default,omitempty"`
 	// Addressable URL for eventing
-	// Address *duckv1beta1.Addressable `json:"address,omitempty"`
+	Address *duckv1beta1.Addressable `json:"address,omitempty"`
 
 	// +optional
 	// +kubebuilder:validation:Minimum=0

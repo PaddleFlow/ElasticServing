@@ -15,7 +15,6 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/prometheus/common v0.14.0
 	istio.io/api v0.0.0-20201125194658-3cee6a1d3ab4
-	// istio.io/client-go v1.8.1
 	istio.io/client-go v0.0.0-20201125195900-beadfa935a0a
 	k8s.io/api v0.18.8
 	k8s.io/apiextensions-apiserver v0.18.8
@@ -25,8 +24,8 @@ require (
 	knative.dev/pkg v0.0.0-20200922164940-4bf40ad82aab
 	knative.dev/serving v0.18.0
 	sigs.k8s.io/controller-runtime v0.6.1
-	sigs.k8s.io/controller-tools v0.2.0-beta.3 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
+	sigs.k8s.io/controller-tools v0.4.0 // indirect
 )
 
 replace (
