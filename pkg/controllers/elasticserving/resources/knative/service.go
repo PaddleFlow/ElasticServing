@@ -3,13 +3,14 @@ package knative
 import (
 	"fmt"
 
+	"ElasticServing/pkg/constants"
+
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
-	"ElasticServing/pkg/constants"
 )
 
 type ServiceConfig struct {
@@ -63,7 +64,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 									Name:            paddlesvc.Spec.RuntimeVersion,
 									Image:           r.serviceConfig.Image,
 									Ports: []core.ContainerPort{
-										{ContainerPort: r.serviceConfig.Port, Name: "http1", Protocol: "TCP"},
+										{ContainerPort: r.serviceConfig.Port, Name: constants.PaddleServiceDefaultPodName, Protocol: core.ProtocolTCP},
 									},
 									Resources: resources,
 								},

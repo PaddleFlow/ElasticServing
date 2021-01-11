@@ -78,7 +78,7 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 		return ctrl.Result{}, err
 	}
 
-	istioReconciler := istio.NewVirtualServiceReconciler(r.Client, r.Scheme)
+	istioReconciler := istio.NewVirtualServiceReconciler(r.Client, r.Scheme, configMap)
 
 	if err := istioReconciler.Reconcile(&paddlesvc); err != nil {
 		r.Log.Error(err, "Failed to finish istio reconcile")

@@ -7,6 +7,7 @@ import (
 
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 
+	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -25,11 +26,11 @@ type VirtualServiceReconciler struct {
 	serviceBuilder *istio.VirtualServiceBuilder
 }
 
-func NewVirtualServiceReconciler(client client.Client, scheme *runtime.Scheme) *VirtualServiceReconciler {
+func NewVirtualServiceReconciler(client client.Client, scheme *runtime.Scheme, configMap *core.ConfigMap) *VirtualServiceReconciler {
 	return &VirtualServiceReconciler{
 		client:         client,
 		scheme:         scheme,
-		serviceBuilder: istio.NewVirtualServiceBuilder(),
+		serviceBuilder: istio.NewVirtualServiceBuilder(configMap),
 	}
 }
 

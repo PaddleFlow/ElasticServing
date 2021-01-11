@@ -42,3 +42,33 @@ func NewPaddleServiceConfig(configMap *core.ConfigMap) (*PaddleServiceConfig, er
 
 	return &paddleServiceConfig, nil
 }
+
+type IngressConfig struct {
+	IngressGateway     string `json:"ingressGateway"`
+	IngressServiceName string `json:"ingressServiceName"`
+}
+
+func GetIngresConfig(client client.Client) (*IngressConfig, error) {
+	configMap := &core.ConfigMap{}
+
+	err := client.Get(context.TODO(), types.NamespacedName{Name: constants.PaddleServiceConfigName, Namespace: constants.PaddleServiceConfigNamespace}, configMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewIngressConfig(configMap)
+}
+
+func NewIngressConfig(configMap *core.ConfigMap) (*IngressConfig, error) {
+	ingressConfig := IngressConfig{}
+	key := constants.Ingress
+
+	if data, ok := configMap.Data[key]; ok {
+		err := json.Unmarshal([]byte(data), &ingressConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &ingressConfig, nil
+}

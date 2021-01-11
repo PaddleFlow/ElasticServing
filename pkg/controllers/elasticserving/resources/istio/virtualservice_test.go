@@ -9,6 +9,7 @@ import (
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
+	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,6 +29,13 @@ const (
 	storageURI     = "hub.baidubce.com/paddlepaddle/serving:latest"
 	deplPort       = 9292
 )
+
+var configMapData = map[string]string{
+	"ingress": `{
+        "ingressGateway": "paddleflow/paddleflow-gateway",
+        "ingressServiceName": "*"
+	}`,
+}
 
 func TestCreateVirtualService(t *testing.T) {
 
@@ -89,12 +97,11 @@ func TestCreateVirtualService(t *testing.T) {
 				},
 			}
 
-			serviceBuilder := VirtualServiceBuilder{
-				ingressConfig: &IngressConfig{
-					IngressGateway:     istioGateway,
-					IngressServiceName: host,
+			serviceBuilder := NewVirtualServiceBuilder(
+				&core.ConfigMap{
+					Data: configMapData,
 				},
-			}
+			)
 
 			createdVs := serviceBuilder.CreateVirtualService(paddlesvc)
 
