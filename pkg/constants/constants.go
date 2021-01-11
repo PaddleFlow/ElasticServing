@@ -1,5 +1,9 @@
 package constants
 
+import (
+	"knative.dev/serving/pkg/apis/autoscaling"
+)
+
 // PaddleService Key
 const (
 	PaddleService               = "paddleService"
@@ -19,10 +23,33 @@ var (
 
 // PaddleService resource defaults
 var (
-	PaddleServiceDefaultCPU      = "0.1"
-	PaddleServiceDefaultMemory   = "128Mi"
-	PaddleServiceDefaultMinScale = 0 // 0 if scale-to-zero is desired
-	PaddleServiceDefaultMaxScale = 0 // 0 means limitless
+	PaddleServiceDefaultCPU                               = "0.1"
+	PaddleServiceDefaultMemory                            = "128Mi"
+	PaddleServiceDefaultMinScale                          = 0 // 0 if scale-to-zero is desired
+	PaddleServiceDefaultMaxScale                          = 0 // 0 means limitless
+	PaddleServiceDefaultTimeout                     int64 = 300
+	PaddleServiceDefaultScalingClass                      = autoscaling.KPA // kpa or hpa
+	PaddleServiceDefaultScalingMetric                     = "concurrency"   // concurrency, rps or cpu (hpa required)
+	PaddleServiceDefaultScalingTarget                     = 100
+	PaddleServiceDefaultTargetUtilizationPercentage       = "70"
+	PaddleServiceDefaultWindow                            = "60s"
+	PaddleServiceDefaultPanicWindow                       = "10" // percentage of StableWindow
+	PaddleServiceDefaultPanicThreshold                    = "200"
+)
+
+var (
+	ServiceAnnotationsList = []string{
+		autoscaling.MinScaleAnnotationKey,
+		autoscaling.MaxScaleAnnotationKey,
+		autoscaling.ClassAnnotationKey,
+		autoscaling.MetricAnnotationKey,
+		autoscaling.TargetAnnotationKey,
+		autoscaling.TargetUtilizationPercentageKey,
+		autoscaling.WindowAnnotationKey,
+		autoscaling.PanicWindowPercentageAnnotationKey,
+		autoscaling.PanicThresholdPercentageAnnotationKey,
+		"kubectl.kubernetes.io/last-applied-configuration",
+	}
 )
 
 func DefaultServiceName(name string) string {
