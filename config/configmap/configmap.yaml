@@ -10,3 +10,8 @@ data:
         "version": "latest",
         "port": 9292
     }
+  ingress: |-
+    {
+        "ingressGateway": "paddleflow/paddleflow-gateway",
+        "ingressServiceName": "*"
+    }
