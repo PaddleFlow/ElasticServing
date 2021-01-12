@@ -5,10 +5,13 @@ metadata:
   namespace: paddleservice-system
 spec:
   # Add fields here
+  resources:
+    requests:
+      cpu: 80m
   deploymentName: paddleservice
+  replicas: 2
   storageUri: hub.baidubce.com/paddlepaddle/serving:latest
   runtimeVersion: paddleserving
-  service:
-    minScale: 2
+  port: 9292
   # storageUri: nginx:latest
   # runtimeVersion: nginx

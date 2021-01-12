@@ -54,12 +54,8 @@ func (ss *PaddleServiceStatus) GetCondition(t apis.ConditionType) *apis.Conditio
 	return conditionSet.Manage(ss).GetCondition(t)
 }
 
-func (ss *PaddleServiceStatus) PropagateStatus(serviceStatus *knservingv1.ServiceStatus) {
-	conditionType := DefaultPaddleServiceReady
+func (ss *PaddleServiceStatus) propagateStatus(conditionType apis.ConditionType, serviceStatus *knservingv1.ServiceStatus) {
 	statusSpec := StatusConfigurationSpec{}
-	if ss.Default == nil {
-		ss.Default = &statusSpec
-	}
 	statusSpec.Name = serviceStatus.LatestCreatedRevisionName
 	serviceCondition := serviceStatus.GetCondition(knservingv1.ServiceConditionReady)
 

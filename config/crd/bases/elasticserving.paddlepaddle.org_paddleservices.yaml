@@ -34,6 +34,13 @@ spec:
             deploymentName:
               maxLength: 64
               type: string
+            port:
+              format: int32
+              type: integer
+            replicas:
+              format: int32
+              minimum: 0
+              type: integer
             resources:
               properties:
                 limits:
@@ -55,34 +62,6 @@ spec:
               type: object
             runtimeVersion:
               type: string
-            service:
-              properties:
-                autoscaler:
-                  enum:
-                  - kpa.autoscaling.knative.dev
-                  - hpa.autoscaling.knative.dev
-                  type: string
-                maxScale:
-                  type: integer
-                metric:
-                  enum:
-                  - concurrency
-                  - rps
-                  - cpu
-                  type: string
-                minScale:
-                  type: integer
-                panicThreshold:
-                  type: string
-                panicWindow:
-                  type: string
-                target:
-                  type: integer
-                targetUtilization:
-                  type: string
-                window:
-                  type: string
-              type: object
             storageUri:
               type: string
           required:
@@ -99,6 +78,8 @@ spec:
               additionalProperties:
                 type: string
               type: object
+            canaryTraffic:
+              type: integer
             conditions:
               items:
                 properties:
@@ -132,6 +113,8 @@ spec:
             replicas:
               format: int32
               minimum: 0
+              type: integer
+            traffic:
               type: integer
             url:
               type: string
