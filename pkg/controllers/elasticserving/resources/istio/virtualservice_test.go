@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
+	"k8s.io/apimachinery/pkg/api/resource"
 
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	core "k8s.io/api/core/v1"
@@ -26,15 +27,40 @@ const (
 	svcNs          = "test"
 	deplName       = "deployment-name"
 	runtimeVersion = "paddlesvc"
-	storageURI     = "hub.baidubce.com/paddlepaddle/serving:latest"
-	deplPort       = 9292
 )
+
+const (
+	image                      = "hub.baidubce.com/paddlepaddle/serving:latest"
+	port                       = 9292
+	PaddleServiceDefaultCPU    = "0.1"
+	PaddleServiceDefaultMemory = "128Mi"
+)
+
+var defaultResources = core.ResourceList{
+	core.ResourceCPU:    resource.MustParse(PaddleServiceDefaultCPU),
+	core.ResourceMemory: resource.MustParse(PaddleServiceDefaultMemory),
+}
 
 var configMapData = map[string]string{
 	"ingress": `{
         "ingressGateway": "paddleflow/paddleflow-gateway",
         "ingressServiceName": "*"
 	}`,
+}
+
+var paddlesvc = elasticservingv1.PaddleService{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      svcName,
+		Namespace: svcNs,
+	},
+	Spec: elasticservingv1.PaddleServiceSpec{
+		DeploymentName: deplName,
+		RuntimeVersion: runtimeVersion,
+		Resources: core.ResourceRequirements{
+			Requests: defaultResources,
+			Limits:   defaultResources,
+		},
+	},
 }
 
 func TestCreateVirtualService(t *testing.T) {
@@ -84,18 +110,6 @@ func TestCreateVirtualService(t *testing.T) {
 	}}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			paddlesvc := &elasticservingv1.PaddleService{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      svcName,
-					Namespace: svcNs,
-				},
-				Spec: elasticservingv1.PaddleServiceSpec{
-					DeploymentName: deplName,
-					RuntimeVersion: runtimeVersion,
-					StorageURI:     storageURI,
-					Port:           deplPort,
-				},
-			}
 
 			serviceBuilder := NewVirtualServiceBuilder(
 				&core.ConfigMap{
@@ -103,7 +117,7 @@ func TestCreateVirtualService(t *testing.T) {
 				},
 			)
 
-			createdVs := serviceBuilder.CreateVirtualService(paddlesvc)
+			createdVs := serviceBuilder.CreateVirtualService(&paddlesvc)
 
 			if diff := cmp.Diff(tc.expectedVs, createdVs); diff != "" {
 				t.Errorf("Test %q unexpected service (-want +got): %v", tc.name, diff)

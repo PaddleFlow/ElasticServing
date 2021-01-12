@@ -39,11 +39,38 @@ type PaddleServiceSpec struct {
 	// Defaults to requests and limits of 1CPU, 2Gb MEM.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 	// +optional
-	// +kubebuilder:validation:Minimum=0
-	Replicas *int32 `json:"replicas,omitempty"`
-	// Port
-	Port int32 `json:"port,omitempty"`
+	Service ServiceSpec `json:"service,omitempty"`
 }
+
+// ServiceSpec defines the configuration for Knative Service.
+type ServiceSpec struct {
+	//+optional
+	Autoscaler Autoscaler `json:"autoscaler,omitempty"`
+	//+optional
+	Metric AutoscalerMetric `json:"metric,omitempty"`
+	//+optional
+	Window string `json:"window,omitempty"`
+	//+optional
+	PanicWindow string `json:"panicWindow,omitempty"`
+	//+optional
+	PanicThreshold string `json:"panicThreshold,omitempty"`
+	//+optional
+	MinScale *int `json:"minScale,omitempty"`
+	//+optional
+	MaxScale int `json:"maxScale,omitempty"`
+	//+optional
+	Target int `json:"target,omitempty"`
+	//+optional
+	TargetUtilization string `json:"targetUtilization,omitempty"`
+}
+
+// Autoscaler defines the autoscaler class
+//+kubebuilder:validation:Enum=kpa.autoscaling.knative.dev;hpa.autoscaling.knative.dev
+type Autoscaler string
+
+// AutoscalerMetric defines the metric for the autoscaler
+//+kubebuilder:validation:Enum=concurrency;rps;cpu
+type AutoscalerMetric string
 
 // PaddleServiceStatus defines the observed state of PaddleService
 type PaddleServiceStatus struct {
@@ -53,11 +80,6 @@ type PaddleServiceStatus struct {
 	duckv1beta1.Status `json:",inline"`
 	// URL of the PaddleService
 	URL string `json:"url,omitempty"`
-	// Traffic percentage that goes to default services
-	Traffic int `json:"traffic,omitempty"`
-	// Traffic percentage that goes to canary services
-	CanaryTraffic int `json:"canaryTraffic,omitempty"`
-
 	// Statuses for the default endpoints of the PaddleService
 	Default *StatusConfigurationSpec `json:"default,omitempty"`
 	// Addressable URL for eventing

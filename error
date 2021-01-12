@@ -1,0 +1,156 @@
+Name:         paddle-sample-service-69stw-deployment-5bfc4fb6b4-f8xjj
+Namespace:    paddleservice-system
+Priority:     0
+Node:         minikube/192.168.49.2
+Start Time:   Tue, 12 Jan 2021 18:31:12 +0800
+Labels:       PaddleService=paddle-sample
+              app=paddle-sample-service-69stw
+              pod-template-hash=5bfc4fb6b4
+              service.istio.io/canonical-name=paddle-sample-service
+              service.istio.io/canonical-revision=paddle-sample-service-69stw
+              serving.knative.dev/configuration=paddle-sample-service
+              serving.knative.dev/configurationGeneration=1
+              serving.knative.dev/revision=paddle-sample-service-69stw
+              serving.knative.dev/revisionUID=fdb0d424-7214-420c-9c67-4bcfe4843c05
+              serving.knative.dev/service=paddle-sample-service
+Annotations:  autoscaling.knative.dev/class: kpa.autoscaling.knative.dev
+              autoscaling.knative.dev/maxScale: 10
+              autoscaling.knative.dev/metric: concurrency
+              autoscaling.knative.dev/minScale: 1
+              autoscaling.knative.dev/panicThresholdPercentage: 200
+              autoscaling.knative.dev/panicWindowPercentage: 10
+              autoscaling.knative.dev/target: 100
+              autoscaling.knative.dev/targetUtilizationPercentage: 70
+              autoscaling.knative.dev/window: 60s
+              serving.knative.dev/creator: minikube-user
+Status:       Running
+IP:           172.17.0.18
+IPs:
+  IP:           172.17.0.18
+Controlled By:  ReplicaSet/paddle-sample-service-69stw-deployment-5bfc4fb6b4
+Containers:
+  paddleserving:
+    Container ID:   docker://56a6338bca2ff1980d506cd36aa4d3b66619cc4fa8393ac3ad205cedf1b17ea8
+    Image:          hub.baidubce.com/paddlepaddle/serving@sha256:2e234858a85a16e18f736e7ce71720fb9ad6e86fc25610b4c11285e26ca07bbd
+    Image ID:       docker-pullable://hub.baidubce.com/paddlepaddle/serving@sha256:2e234858a85a16e18f736e7ce71720fb9ad6e86fc25610b4c11285e26ca07bbd
+    Port:           9292/TCP
+    Host Port:      0/TCP
+    State:          Waiting
+      Reason:       CrashLoopBackOff
+    Last State:     Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 12 Jan 2021 18:31:53 +0800
+      Finished:     Tue, 12 Jan 2021 18:31:53 +0800
+    Ready:          False
+    Restart Count:  1
+    Limits:
+      cpu:     100m
+      memory:  128Mi
+    Requests:
+      cpu:     100m
+      memory:  128Mi
+    Environment:
+      PORT:                      9292
+      K_REVISION:                paddle-sample-service-69stw
+      K_CONFIGURATION:           paddle-sample-service
+      K_SERVICE:                 paddle-sample-service
+      K_INTERNAL_POD_NAME:       paddle-sample-service-69stw-deployment-5bfc4fb6b4-f8xjj (v1:metadata.name)
+      K_INTERNAL_POD_NAMESPACE:  paddleservice-system (v1:metadata.namespace)
+    Mounts:
+      /var/log from knative-var-log (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-bsmzn (ro)
+  queue-proxy:
+    Container ID:   docker://8ca7e7394dde50d924044ee43c1b96a643ac11b26d69aa70de035701ce12b5d3
+    Image:          gcr.io/knative-releases/knative.dev/serving/cmd/queue@sha256:713bd548700bf7fe5452969611d1cc987051bd607d67a4e7623e140f06c209b2
+    Image ID:       docker-pullable://gcr.io/knative-releases/knative.dev/serving/cmd/queue@sha256:713bd548700bf7fe5452969611d1cc987051bd607d67a4e7623e140f06c209b2
+    Ports:          8022/TCP, 9090/TCP, 9091/TCP, 8012/TCP
+    Host Ports:     0/TCP, 0/TCP, 0/TCP, 0/TCP
+    State:          Running
+      Started:      Tue, 12 Jan 2021 18:31:22 +0800
+    Ready:          False
+    Restart Count:  0
+    Requests:
+      cpu:      25m
+    Readiness:  exec [/ko-app/queue -probe-period 0] delay=0s timeout=10s period=1s #success=1 #failure=3
+    Environment:
+      SERVING_NAMESPACE:                      paddleservice-system
+      SERVING_SERVICE:                        paddle-sample-service
+      SERVING_CONFIGURATION:                  paddle-sample-service
+      SERVING_REVISION:                       paddle-sample-service-69stw
+      QUEUE_SERVING_PORT:                     8012
+      CONTAINER_CONCURRENCY:                  0
+      REVISION_TIMEOUT_SECONDS:               300
+      SERVING_POD:                            paddle-sample-service-69stw-deployment-5bfc4fb6b4-f8xjj (v1:metadata.name)
+      SERVING_POD_IP:                          (v1:status.podIP)
+      SERVING_LOGGING_CONFIG:                 {
+                                                "level": "info",
+                                                "development": false,
+                                                "outputPaths": ["stdout"],
+                                                "errorOutputPaths": ["stderr"],
+                                                "encoding": "json",
+                                                "encoderConfig": {
+                                                  "timeKey": "ts",
+                                                  "levelKey": "level",
+                                                  "nameKey": "logger",
+                                                  "callerKey": "caller",
+                                                  "messageKey": "msg",
+                                                  "stacktraceKey": "stacktrace",
+                                                  "lineEnding": "",
+                                                  "levelEncoder": "",
+                                                  "timeEncoder": "iso8601",
+                                                  "durationEncoder": "",
+                                                  "callerEncoder": ""
+                                                }
+                                              }
+      SERVING_LOGGING_LEVEL:                  
+      SERVING_REQUEST_LOG_TEMPLATE:           
+      SERVING_REQUEST_METRICS_BACKEND:        prometheus
+      TRACING_CONFIG_BACKEND:                 none
+      TRACING_CONFIG_ZIPKIN_ENDPOINT:         
+      TRACING_CONFIG_STACKDRIVER_PROJECT_ID:  
+      TRACING_CONFIG_DEBUG:                   false
+      TRACING_CONFIG_SAMPLE_RATE:             0.1
+      USER_PORT:                              9292
+      SYSTEM_NAMESPACE:                       knative-serving
+      METRICS_DOMAIN:                         knative.dev/internal/serving
+      DOWNWARD_API_LABELS_PATH:               /etc/podinfo/labels
+      SERVING_READINESS_PROBE:                {"tcpSocket":{"port":9292,"host":"127.0.0.1"},"successThreshold":1}
+      ENABLE_PROFILING:                       false
+      SERVING_ENABLE_PROBE_REQUEST_LOG:       false
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-bsmzn (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             False 
+  ContainersReady   False 
+  PodScheduled      True 
+Volumes:
+  knative-var-log:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  default-token-bsmzn:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-bsmzn
+    Optional:    false
+QoS Class:       Burstable
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  50s                default-scheduler  Successfully assigned paddleservice-system/paddle-sample-service-69stw-deployment-5bfc4fb6b4-f8xjj to minikube
+  Normal   Started    40s                kubelet            Started container queue-proxy
+  Normal   Pulled     40s                kubelet            Container image "gcr.io/knative-releases/knative.dev/serving/cmd/queue@sha256:713bd548700bf7fe5452969611d1cc987051bd607d67a4e7623e140f06c209b2" already present on machine
+  Normal   Created    40s                kubelet            Created container queue-proxy
+  Warning  Failed     31s                kubelet            Failed to pull image "hub.baidubce.com/paddlepaddle/serving@sha256:2e234858a85a16e18f736e7ce71720fb9ad6e86fc25610b4c11285e26ca07bbd": rpc error: code = Unknown desc = Error response from daemon: Get https://hub.baidubce.com/v2/paddlepaddle/serving/manifests/sha256:2e234858a85a16e18f736e7ce71720fb9ad6e86fc25610b4c11285e26ca07bbd: EOF
+  Warning  Failed     31s                kubelet            Error: ErrImagePull
+  Normal   Pulling    17s (x3 over 49s)  kubelet            Pulling image "hub.baidubce.com/paddlepaddle/serving@sha256:2e234858a85a16e18f736e7ce71720fb9ad6e86fc25610b4c11285e26ca07bbd"
+  Normal   Started    9s (x2 over 40s)   kubelet            Started container paddleserving
+  Normal   Pulled     9s (x2 over 40s)   kubelet            Successfully pulled image "hub.baidubce.com/paddlepaddle/serving@sha256:2e234858a85a16e18f736e7ce71720fb9ad6e86fc25610b4c11285e26ca07bbd"
+  Normal   Created    9s (x2 over 40s)   kubelet            Created container paddleserving
+  Warning  Unhealthy  9s (x2 over 19s)   kubelet            Readiness probe failed: probe returned not ready
+  Warning  BackOff    8s (x3 over 31s)   kubelet            Back-off restarting failed container
