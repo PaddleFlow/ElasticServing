@@ -25,8 +25,8 @@ var (
 var (
 	PaddleServiceDefaultCPU                               = "0.1"
 	PaddleServiceDefaultMemory                            = "128Mi"
-	PaddleServiceDefaultMinScale                          = 0 // 0 if scale-to-zero is desired
-	PaddleServiceDefaultMaxScale                          = 0 // 0 means limitless
+	PaddleServiceDefaultMinScale                          = 1  // 0 if scale-to-zero is desired
+	PaddleServiceDefaultMaxScale                          = 10 // 0 means limitless
 	PaddleServiceDefaultTimeout                     int64 = 300
 	PaddleServiceDefaultScalingClass                      = autoscaling.KPA // kpa or hpa
 	PaddleServiceDefaultScalingMetric                     = "concurrency"   // concurrency, rps or cpu (hpa required)

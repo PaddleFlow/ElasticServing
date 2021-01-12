@@ -6,9 +6,11 @@ import (
 
 	"ElasticServing/pkg/constants"
 
+	"github.com/prometheus/common/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
@@ -49,6 +51,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 	if err != nil {
 		return nil, err
 	}
+	concurrency := int64(paddlesvcSpec.Service.Target)
 
 	service := &knservingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -66,6 +69,8 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 						Annotations: annotations,
 					},
 					Spec: knservingv1.RevisionSpec{
+						TimeoutSeconds:       &constants.PaddleServiceDefaultTimeout,
+						ContainerConcurrency: &concurrency,
 						PodSpec: core.PodSpec{
 							Containers: []core.Container{
 								{
@@ -75,9 +80,19 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 									Ports: []core.ContainerPort{
 										{ContainerPort: r.serviceConfig.Port, Name: constants.PaddleServiceDefaultPodName, Protocol: core.ProtocolTCP},
 									},
+									ReadinessProbe: &core.Probe{
+										SuccessThreshold:    5,
+										InitialDelaySeconds: 5,
+										Handler: core.Handler{
+											TCPSocket: &core.TCPSocketAction{
+												Port: intstr.FromInt(0),
+											},
+										},
+									},
 									Resources: resources,
 								},
 							},
+							//RestartPolicy: core.RestartPolicyAlways,
 						},
 					},
 				},
@@ -88,7 +103,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 }
 
 func (r *ServiceBuilder) buildAnnotations(metadata metav1.ObjectMeta, paddlesvcSpec elasticservingv1.PaddleServiceSpec) (map[string]string, error) {
-	var annotations map[string]string
+	annotations := make(map[string]string)
 
 	// Autoscaler
 	if paddlesvcSpec.Service.Autoscaler == "" {
@@ -141,8 +156,10 @@ func (r *ServiceBuilder) buildAnnotations(metadata metav1.ObjectMeta, paddlesvcS
 
 	// Min replicas
 	if paddlesvcSpec.Service.MinScale == nil {
+		log.Info("Fuck2")
 		annotations[autoscaling.MinScaleAnnotationKey] = fmt.Sprint(constants.PaddleServiceDefaultMinScale)
 	} else {
+		log.Info("Fuck1")
 		annotations[autoscaling.MinScaleAnnotationKey] = strconv.Itoa(*paddlesvcSpec.Service.MinScale)
 	}
 

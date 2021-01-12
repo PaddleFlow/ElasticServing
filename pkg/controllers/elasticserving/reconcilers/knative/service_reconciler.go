@@ -37,6 +37,18 @@ func NewServiceReconciler(client client.Client, scheme *runtime.Scheme, configMa
 	}
 }
 
+// +kubebuilder:rbac:groups=serving.knative.dev,resources=services,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=serving.knative.dev,resources=services/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;list;create;
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;create;
+// +kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;list;create;
+// +kubebuilder:rbac:groups="",resources=services,verbs=*
+// +kubebuilder:rbac:groups="",resources=pods,verbs=*
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs/status,verbs=get;update;patch
+
 func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService) error {
 	var service *knservingv1.Service
 	var err error
@@ -52,14 +64,17 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		}
 
 		// TODO: Modify status
+		// paddlesvc.Status.PropagateStatus(nil)
 		return nil
 	}
 
 	if _, err := r.reconcileService(paddlesvc, service); err != nil {
 		return err
+	} else {
+		// TODO: Modify status
+		// paddlesvc.Status.PropagateStatus(status)
 	}
 
-	// TODO: Modify status
 	return nil
 }
 

@@ -62,8 +62,6 @@ type ServiceSpec struct {
 	Target int `json:"target,omitempty"`
 	//+optional
 	TargetUtilization string `json:"targetUtilization,omitempty"`
-	//+optional
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // Autoscaler defines the autoscaler class
@@ -82,11 +80,6 @@ type PaddleServiceStatus struct {
 	duckv1beta1.Status `json:",inline"`
 	// URL of the PaddleService
 	URL string `json:"url,omitempty"`
-	// Traffic percentage that goes to default services
-	Traffic int `json:"traffic,omitempty"`
-	// Traffic percentage that goes to canary services
-	CanaryTraffic int `json:"canaryTraffic,omitempty"`
-
 	// Statuses for the default endpoints of the PaddleService
 	Default *StatusConfigurationSpec `json:"default,omitempty"`
 	// Addressable URL for eventing
