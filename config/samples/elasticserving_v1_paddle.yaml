@@ -9,6 +9,6 @@ spec:
   storageUri: hub.baidubce.com/paddlepaddle/serving:latest
   runtimeVersion: paddleserving
   service:
-    minScale: 2
+    minScale: 1
   # storageUri: nginx:latest
   # runtimeVersion: nginx

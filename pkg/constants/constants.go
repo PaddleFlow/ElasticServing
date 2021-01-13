@@ -23,8 +23,8 @@ var (
 
 // PaddleService resource defaults
 var (
-	PaddleServiceDefaultCPU                               = "0.1"
-	PaddleServiceDefaultMemory                            = "128Mi"
+	PaddleServiceDefaultCPU                               = "0.2"
+	PaddleServiceDefaultMemory                            = "512Mi"
 	PaddleServiceDefaultMinScale                          = 1  // 0 if scale-to-zero is desired
 	PaddleServiceDefaultMaxScale                          = 10 // 0 means limitless
 	PaddleServiceDefaultTimeout                     int64 = 300

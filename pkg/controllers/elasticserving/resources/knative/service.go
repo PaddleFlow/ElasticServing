@@ -52,6 +52,13 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 	}
 	concurrency := int64(paddlesvcSpec.Service.Target)
 
+	command := []string{"/bin/bash", "-c"}
+	args := []string{
+		`pip install paddle-serving-server==0.4.0;
+		pip install paddle-serving-app==0.2.0 &&
+		python -m paddle_serving_app.package`,
+	}
+
 	service := &knservingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
@@ -79,9 +86,14 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 									Ports: []core.ContainerPort{
 										{ContainerPort: r.serviceConfig.Port, Name: constants.PaddleServiceDefaultPodName, Protocol: core.ProtocolTCP},
 									},
+									Command: command,
+									Args:    args,
 									ReadinessProbe: &core.Probe{
-										SuccessThreshold:    5,
-										InitialDelaySeconds: 5,
+										SuccessThreshold:    1,
+										InitialDelaySeconds: 0,
+										TimeoutSeconds:      1,
+										FailureThreshold:    100,
+										PeriodSeconds:       100,
 										Handler: core.Handler{
 											TCPSocket: &core.TCPSocketAction{
 												Port: intstr.FromInt(0),
