@@ -6,7 +6,6 @@ import (
 
 	"ElasticServing/pkg/constants"
 
-	"github.com/prometheus/common/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -156,10 +155,8 @@ func (r *ServiceBuilder) buildAnnotations(metadata metav1.ObjectMeta, paddlesvcS
 
 	// Min replicas
 	if paddlesvcSpec.Service.MinScale == nil {
-		log.Info("Fuck2")
 		annotations[autoscaling.MinScaleAnnotationKey] = fmt.Sprint(constants.PaddleServiceDefaultMinScale)
 	} else {
-		log.Info("Fuck1")
 		annotations[autoscaling.MinScaleAnnotationKey] = strconv.Itoa(*paddlesvcSpec.Service.MinScale)
 	}
 
