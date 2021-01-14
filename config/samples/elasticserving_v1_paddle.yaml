@@ -10,5 +10,4 @@ spec:
   runtimeVersion: paddleserving
   service:
     minScale: 1
-  # storageUri: nginx:latest
-  # runtimeVersion: nginx
+    concurrency: "cpu"

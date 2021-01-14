@@ -61,7 +61,6 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 		tar -xzf uci_housing.tar.gz &&
 		python -m paddle_serving_server.serve --model uci_housing_model --thread 1 --port 9292`,
 	}
-
 	service := &knservingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,

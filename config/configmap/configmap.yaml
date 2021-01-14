@@ -12,6 +12,6 @@ data:
     }
   ingress: |-
     {
-        "ingressGateway": "paddleflow/paddleflow-gateway",
-        "ingressServiceName": "*"
+        "ingressGateway" : "istio-ingressgateway",
+        "ingressServiceName" : "istio-ingressgateway.istio-system.svc.cluster.local"
     }
