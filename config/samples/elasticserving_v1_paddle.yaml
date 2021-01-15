@@ -9,6 +9,5 @@ spec:
   storageUri: hub.baidubce.com/paddlepaddle/serving:latest
   runtimeVersion: paddleserving
   service:
-    minScale: 2
-  # storageUri: nginx:latest
-  # runtimeVersion: nginx
+    minScale: 1
+    concurrency: "cpu"
