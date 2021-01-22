@@ -6,6 +6,8 @@ ElasticServing provides a Kubernetes custom resource definition (CRD) for servin
 
 ``` cd ElasticServing```
 
+``` kubectl create ns paddleservice-system```
+
 ```make install```
 
 ```kubectl create -f config/samples/elasticserving_v1_paddle.yaml```
