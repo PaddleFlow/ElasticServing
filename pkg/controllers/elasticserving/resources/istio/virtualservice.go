@@ -40,11 +40,7 @@ func NewVirtualServiceBuilder(configMap *core.ConfigMap) *VirtualServiceBuilder 
 }
 
 func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1.PaddleService) *v1alpha3.VirtualService {
-	// clusterDomain := "cluster.local"
-	// prefix := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
-	// rewrite := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
 
-	// service := fmt.Sprintf("%s.%s.svc.%s", paddlesvc.Name, paddlesvc.Namespace, clusterDomain)
 	service := constants.DefaultServiceName(paddlesvc.Name)
 
 	istioGateway := r.ingressConfig.IngressGateway
