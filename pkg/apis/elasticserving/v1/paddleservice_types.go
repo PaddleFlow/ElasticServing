@@ -32,8 +32,8 @@ type PaddleServiceSpec struct {
 
 	// +kubebuilder:validation:MaxLength=64
 	DeploymentName string `json:"deploymentName"`
-	// The URI for the saved model
-	StorageURI string `json:"storageUri,omitempty"`
+	// Argument for Service
+	Argument string `json:"arg,omitempty"`
 	// Docker image version
 	RuntimeVersion string `json:"runtimeVersion,omitempty"`
 	// Defaults to requests and limits of 1CPU, 2Gb MEM.
