@@ -11,9 +11,12 @@ spec:
     pip install paddle-serving-server==0.4.0;
     pip install paddle-serving-client==0.4.0;
     pip install paddle-serving-app==0.2.0;
-    wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz;
-    tar -xzf uci_housing.tar.gz &&
-    python -m paddle_serving_server.serve --model uci_housing_model --thread 1 --port 9292
+    pip install shapely==1.7.0 -U;
+    yum install git -y;
+    git clone https://github.com/PaddlePaddle/Serving.git;
+    python -m paddle_serving_app.package --get_model lac;
+    tar -xzf lac.tar.gz &&
+    python /Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292
   service:
     minScale: 1
     concurrency: "cpu"
