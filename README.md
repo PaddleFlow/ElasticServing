@@ -55,7 +55,7 @@ kubectl logs <pod-name> -n paddleservice-system -c paddleserving -f
 ``` bash
 # Find the public IP address of the gateway (make a note of the EXTERNAL-IP field in the output)
 kubectl get service istio-ingressgateway --namespace=istio-system
-# If you are using minikube, the public IP address of the gateway will be listed once you execute the following command (There will exist for URLs and maybe choose the second one)
+# If you are using minikube, the public IP address of the gateway will be listed once you execute the following command (There will exist four URLs and maybe choose the second one)
 minikube service --url istio-ingressgateway -n istio-system
 
 # Find the URL of the application. The expected result may be http://paddle-sample-service.paddleservice-system.example.com
