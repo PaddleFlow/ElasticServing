@@ -14,7 +14,7 @@ The sample used here is [Chinese Word Segmentation](https://github.com/PaddlePad
 
 ```bash
 # Download ElasticServing
-git clone git@github.com:PaddleFlow/ElasticServing.git
+git clone https://github.com/PaddleFlow/ElasticServing.git
 cd ElasticServing
 
 # Create namespace paddleservice-system
