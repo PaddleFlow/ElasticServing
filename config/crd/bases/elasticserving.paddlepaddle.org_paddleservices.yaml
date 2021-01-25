@@ -31,6 +31,8 @@ spec:
           type: object
         spec:
           properties:
+            arg:
+              type: string
             deploymentName:
               maxLength: 64
               type: string
@@ -83,8 +85,6 @@ spec:
                 window:
                   type: string
               type: object
-            storageUri:
-              type: string
           required:
           - deploymentName
           type: object

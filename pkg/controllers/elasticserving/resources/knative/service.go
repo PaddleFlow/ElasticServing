@@ -54,13 +54,9 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 
 	command := []string{"/bin/bash", "-c"}
 	args := []string{
-		`pip install paddle-serving-server==0.4.0;
-		pip install paddle-serving-client==0.4.0;
-		pip install paddle-serving-app==0.2.0;
-		wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz;
-		tar -xzf uci_housing.tar.gz &&
-		python -m paddle_serving_server.serve --model uci_housing_model --thread 1 --port 9292`,
+		paddlesvc.Spec.Argument,
 	}
+
 	service := &knservingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,

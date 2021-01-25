@@ -6,8 +6,14 @@ metadata:
 spec:
   # Add fields here
   deploymentName: paddleservice
-  storageUri: hub.baidubce.com/paddlepaddle/serving:latest
   runtimeVersion: paddleserving
+  arg:
+    pip install paddle-serving-server==0.4.0;
+    pip install paddle-serving-client==0.4.0;
+    pip install paddle-serving-app==0.2.0;
+    wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz;
+    tar -xzf uci_housing.tar.gz &&
+    python -m paddle_serving_server.serve --model uci_housing_model --thread 1 --port 9292
   service:
     minScale: 1
     concurrency: "cpu"

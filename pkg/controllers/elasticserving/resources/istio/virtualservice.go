@@ -40,11 +40,7 @@ func NewVirtualServiceBuilder(configMap *core.ConfigMap) *VirtualServiceBuilder 
 }
 
 func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1.PaddleService) *v1alpha3.VirtualService {
-	// clusterDomain := "cluster.local"
-	prefix := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
-	rewrite := fmt.Sprintf("/paddlepaddle/%s/%s/", paddlesvc.Namespace, paddlesvc.Name)
 
-	// service := fmt.Sprintf("%s.%s.svc.%s", paddlesvc.Name, paddlesvc.Namespace, clusterDomain)
 	service := constants.DefaultServiceName(paddlesvc.Name)
 
 	istioGateway := r.ingressConfig.IngressGateway
@@ -66,27 +62,12 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 			Gateways: []string{istioGateway},
 			Http: []*istiov1alpha3.HTTPRoute{
 				{
-					Match: []*istiov1alpha3.HTTPMatchRequest{
-						{
-							Uri: &istiov1alpha3.StringMatch{
-								MatchType: &istiov1alpha3.StringMatch_Prefix{
-									Prefix: prefix,
-								},
-							},
-						},
-					},
 					Route: []*istiov1alpha3.HTTPRouteDestination{
 						&istiov1alpha3.HTTPRouteDestination{
 							Destination: &istiov1alpha3.Destination{
 								Host: service,
-								Port: &istiov1alpha3.PortSelector{
-									Number: uint32(80),
-								},
 							},
 						},
-					},
-					Rewrite: &istiov1alpha3.HTTPRewrite{
-						Uri: rewrite,
 					},
 				},
 			},
