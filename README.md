@@ -69,3 +69,9 @@ curl -H "Host: paddle-sample-service.paddleservice-system.example.com" -H "Conte
 
 ```
 
+
+
+## License
+
+This project is under the [Apache-2.0 license](https://github.com/PaddleFlow/ElasticServing/blob/main/LICENSE).
+
