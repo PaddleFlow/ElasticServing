@@ -107,7 +107,7 @@ paddleService: |-
 }
 ```
 
-The sample ```config/configmap/configmap.yaml``` uses TAG ``` latest``` in row ```version```. It is used for CPU runtime version of paddle serving image. If you want to use other version like GPU version, please checkout [the Image description part](https://github.com/PaddlePaddle/Serving/blob/v0.4.0/doc/DOCKER_IMAGES.md#image-description).
+The sample ```config/configmap/configmap.yaml``` uses TAG ``` latest``` in row ```version```. It is used for CPU runtime version of paddle serving image. If you want to use other version like GPU version, please check out [the Image description part](https://github.com/PaddlePaddle/Serving/blob/v0.4.0/doc/DOCKER_IMAGES.md#image-description).
 
 Then run
 
@@ -147,7 +147,7 @@ spec:
     memory: "512Mi"
 ```
 
-Execute the follow command:
+Execute the following command:
 
 ``` bash
 kubectl create ns <new-PS-namespace>
