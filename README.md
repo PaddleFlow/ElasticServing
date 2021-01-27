@@ -145,7 +145,6 @@ spec:
   resources:
     cpu: "0.2"
     memory: "512Mi"
-  	
 ```
 
 Execute the follow command:
