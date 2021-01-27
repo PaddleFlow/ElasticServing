@@ -34,7 +34,7 @@ type PaddleServiceSpec struct {
 	DeploymentName string `json:"deploymentName"`
 	// Argument for Service
 	Argument string `json:"arg,omitempty"`
-	// Docker image version
+	// Version of the service
 	RuntimeVersion string `json:"runtimeVersion,omitempty"`
 	// Defaults to requests and limits of 1CPU, 2Gb MEM.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
