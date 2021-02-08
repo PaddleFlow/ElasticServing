@@ -4,7 +4,7 @@ ElasticServing provides a Kubernetes custom resource definition (CRD) for servin
 
 
 
-## Quick Start From Zero
+## Quick Start
 
 Image used here is [Paddle Serving Image for CPU](https://github.com/PaddlePaddle/Serving#installation). This can be modified in ```config/configmap/configmap.yaml```
 
