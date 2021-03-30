@@ -2,8 +2,6 @@
 
 ElasticServing provides a Kubernetes custom resource definition (CRD) for serving machine learning (ML) models on mainstream framework such as tensorflow, onnx, paddle. It encapsulates the complexity of auto scaling, fault tolerant, health check and use kustomize for configuration reconcile. It also natively support heterogeneous hardware like nvidia GPU or KunLun chip. With ElasticServing it’s easy to scaling to zero and do the canary launch for ML deployment.
 
-
-
 ## Quick Start
 
 Image used here is [Paddle Serving Image for CPU](https://github.com/PaddlePaddle/Serving#installation). This can be modified in ```config/configmap/configmap.yaml```
@@ -29,8 +27,6 @@ kubectl create -f config/samples/elasticserving_v1_paddle.yaml
 make run
 ```
 
-
-
 ### 2. Installation Test
 
 ``` bash
@@ -47,8 +43,6 @@ kubectl get pods -n paddleservice-system
 kubectl logs <pod-name> -n paddleservice-system -c paddleserving -f
 
 ```
-
-
 
 ### 3. Run Sample
 
@@ -73,11 +67,7 @@ curl -H "Host: paddle-sample-service.paddleservice-system.example.com" -H "Conte
 {"result":[{"word_seg":"\u6211|\u7231|\u5317\u4eac|\u5929\u5b89\u95e8"}]}
 ```
 
-
-
 ## Installation
-
-
 
 ``` bash
 # Download ElasticServing
@@ -157,4 +147,3 @@ kubectl apply -f /dir/to/this/yaml/example.yaml
 ## License
 
 This project is under the [Apache-2.0 license](https://github.com/PaddleFlow/ElasticServing/blob/main/LICENSE).
-
