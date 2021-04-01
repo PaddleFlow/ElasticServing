@@ -8,7 +8,12 @@ Image used here is [Paddle Serving Image for CPU](https://github.com/PaddlePaddl
 
 The sample used here is [Chinese Word Segmentation](https://github.com/PaddlePaddle/Serving#-pre-built-services-with-paddle-serving). The preparation work is done making used of the entrypoint of docker. This can be modified in ```args``` column in ```config/samples/elasticserving_v1_paddle.yaml``` 
 
-### 1. Installation
+### Prerequisites
+- Kubernetes cluster
+- Knative Serving with Istio Installed.
+You can refer to the [Installation guide](https://knative.dev/docs/install/any-kubernetes-cluster/#installing-the-serving-component) or run `hack/install_knative.sh`.
+
+### Installation
 
 ```bash
 # Download ElasticServing
@@ -23,11 +28,11 @@ make install
 kubectl create -f config/configmap/configmap.yaml
 kubectl create -f config/samples/elasticserving_v1_paddle.yaml
 
-# Run ElasticServing Controller
+# Run ElasticServing Controller locally
 make run
 ```
 
-### 2. Installation Test
+### Installation Test
 
 ``` bash
 # Check service in namespace paddleservice-system
@@ -44,7 +49,7 @@ kubectl logs <pod-name> -n paddleservice-system -c paddleserving -f
 
 ```
 
-### 3. Run Sample
+### Run Sample
 
 ``` bash
 # Find the public IP address of the gateway (make a note of the EXTERNAL-IP field in the output)
