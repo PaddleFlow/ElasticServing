@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set -e
+set -ex
 
 # NOTE: some resources doesn't exist for KNATIVE_VERSION < v0.21.0
 export KNATIVE_VERSION=v0.21.0
