@@ -18,11 +18,8 @@ func NewPaddleServiceConfig(configMap *core.ConfigMap) (*PaddleServiceConfig, er
 	paddleServiceConfig := PaddleServiceConfig{}
 	key := constants.PaddleService
 
-	if data, ok := configMap.Data[key]; ok {
-		err := json.Unmarshal([]byte(data), &paddleServiceConfig)
-		if err != nil {
-			return nil, err
-		}
+	if err := loadFromConfigMap(configMap, &paddleServiceConfig, key); err != nil {
+		return nil, err
 	}
 
 	return &paddleServiceConfig, nil
@@ -37,12 +34,16 @@ func NewIngressConfig(configMap *core.ConfigMap) (*IngressConfig, error) {
 	ingressConfig := IngressConfig{}
 	key := constants.Ingress
 
-	if data, ok := configMap.Data[key]; ok {
-		err := json.Unmarshal([]byte(data), &ingressConfig)
-		if err != nil {
-			return nil, err
-		}
+	if err := loadFromConfigMap(configMap, &ingressConfig, key); err != nil {
+		return nil, err
 	}
 
 	return &ingressConfig, nil
+}
+
+func loadFromConfigMap(configMap *core.ConfigMap, config interface{}, key string) error {
+	if data, ok := configMap.Data[key]; ok {
+		return json.Unmarshal([]byte(data), config)
+	}
+	return nil
 }
