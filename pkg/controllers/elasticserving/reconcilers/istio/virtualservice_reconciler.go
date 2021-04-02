@@ -71,16 +71,13 @@ func (r *VirtualServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleS
 }
 
 func (r *VirtualServiceReconciler) CompAndCopyVs(desiredVs *v1alpha3.VirtualService, existingVs *v1alpha3.VirtualService) error {
-	if requireCopy := reflect.DeepEqual(desiredVs.Spec, existingVs.Spec); requireCopy == true {
+	if !reflect.DeepEqual(desiredVs.Spec, existingVs.Spec) {
 		log.Info("Reconciling virtual service")
 		log.Info("Updating virtual service", "namespace", existingVs.Namespace, "name", existingVs.Name)
 		existingVs.Spec = desiredVs.Spec
 		existingVs.ObjectMeta.Annotations = desiredVs.ObjectMeta.Annotations
 		existingVs.ObjectMeta.Labels = desiredVs.ObjectMeta.Labels
-		err := r.client.Update(context.TODO(), existingVs)
-		if err != nil {
-			return err
-		}
+		return r.client.Update(context.TODO(), existingVs)
 	}
 	return nil
 }
