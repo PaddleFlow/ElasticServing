@@ -41,8 +41,8 @@ func NewVirtualServiceReconciler(client client.Client, scheme *runtime.Scheme, c
 // +kubebuilder:rbac:groups=core,resources=serviceaccount,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=list;create;update;delete
-// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddleservices,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddleservices/status,verbs=get;update;patch
 
 func (r *VirtualServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService) error {
 
