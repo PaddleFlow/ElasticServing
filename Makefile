@@ -26,20 +26,25 @@ run: generate fmt vet manifests
 	go run ./main.go
 
 # Install CRDs into a cluster
-install: manifests
-	kustomize build config/crd | kubectl apply --validate=false -f -
+install: assets
+	kubectl apply -f assets/crd.yaml
 
 # Uninstall CRDs from a cluster
-uninstall: manifests
-	kustomize build config/crd | kubectl delete -f -
+uninstall:
+	kubectl delete -f assets/crd.yaml
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests
-	cd config/manager && kustomize edit set image controller=${IMG}
-	kustomize build config/default | kubectl apply --validate=false -f -
+deploy: assets
+	kubectl apply -f assets/elasticserving_operator.yaml
 
 undeploy:
-	kustomize build config/default | kubectl delete -f -
+	kubectl delete -f assets/elasticserving_operator.yaml
+
+assets: manifests
+	cd config/manager && kustomize edit set image controller=${IMG}
+	kustomize build config/crd -o assets/crd.yaml
+	kustomize build config/default -o assets/elasticserving_operator.yaml
+	kustomize build config/serving -o assets/sample_service.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
