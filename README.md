@@ -15,21 +15,16 @@ You can refer to the [Installation guide](https://knative.dev/docs/install/any-k
 
 ### Installation
 
-```bash
+``` bash
 # Download ElasticServing
 git clone https://github.com/PaddleFlow/ElasticServing.git
 cd ElasticServing
 
-# Create namespace paddleservice-system
-kubectl create ns paddleservice-system
+# Install elastic serving CRD and controller manager
+kubectl apply -f assets/elasticserving_operator.yaml
 
-# Install
-make install
-kubectl create -f config/configmap/configmap.yaml
-kubectl create -f config/samples/elasticserving_v1_paddle.yaml
-
-# Run ElasticServing Controller locally
-make run
+# Deploy paddle service
+kubectl apply -f assets/sample_service.yaml
 ```
 
 ### Installation Test
@@ -79,16 +74,11 @@ curl -H "Host: paddle-sample-service.paddleservice-system.example.com" -H "Conte
 git clone https://github.com/PaddleFlow/ElasticServing.git
 cd ElasticServing
 
-# Create namespace paddleservice-system
-kubectl create ns paddleservice-system
+# Install elastic serving CRD and controller manager
+kubectl apply -f assets/elasticserving_operator.yaml
 
-# Install
-make install
-kubectl create -f config/configmap/configmap.yaml
-kubectl create -f config/samples/elasticserving_v1_paddle.yaml
-
-# Run ElasticServing Controller
-make run
+# Deploy paddle service
+kubectl apply -f assets/sample_service.yaml
 ```
 
 ### Change Paddle Serving Image 
