@@ -10,8 +10,8 @@ The sample used here is [Chinese Word Segmentation](https://github.com/PaddlePad
 
 ### Prerequisites
 - Kubernetes cluster
-- Istio and Knative Serving
-You can refer to the [Knative documentations](https://knative.dev/v0.22-docs/install/install-serving-with-yaml).
+- Knative Serving with Istio Installed.
+You can refer to the [Installation guide](https://knative.dev/docs/install/any-kubernetes-cluster/#installing-the-serving-component) or run `hack/install_knative.sh`.
 
 ### Installation
 
