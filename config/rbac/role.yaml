@@ -79,7 +79,7 @@ rules:
 - apiGroups:
   - elasticserving.paddlepaddle.org
   resources:
-  - paddlesvcs
+  - paddleservices
   verbs:
   - create
   - delete
@@ -91,7 +91,7 @@ rules:
 - apiGroups:
   - elasticserving.paddlepaddle.org
   resources:
-  - paddlesvcs/status
+  - paddleservices/status
   verbs:
   - get
   - patch

@@ -46,8 +46,8 @@ type PaddleServiceReconciler struct {
 	Recorder record.EventRecorder
 }
 
-// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddleservices,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddleservices/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 

@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
 )
@@ -41,8 +41,8 @@ func NewVirtualServiceReconciler(client client.Client, scheme *runtime.Scheme, c
 // +kubebuilder:rbac:groups=core,resources=serviceaccount,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=list;create;update;delete
-// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddlesvcs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddleservices,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddleservices/status,verbs=get;update;patch
 
 func (r *VirtualServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService) error {
 
@@ -71,16 +71,13 @@ func (r *VirtualServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleS
 }
 
 func (r *VirtualServiceReconciler) CompAndCopyVs(desiredVs *v1alpha3.VirtualService, existingVs *v1alpha3.VirtualService) error {
-	if requireCopy := reflect.DeepEqual(desiredVs.Spec, existingVs.Spec); requireCopy == true {
+	if !reflect.DeepEqual(desiredVs.Spec, existingVs.Spec) {
 		log.Info("Reconciling virtual service")
 		log.Info("Updating virtual service", "namespace", existingVs.Namespace, "name", existingVs.Name)
 		existingVs.Spec = desiredVs.Spec
 		existingVs.ObjectMeta.Annotations = desiredVs.ObjectMeta.Annotations
 		existingVs.ObjectMeta.Labels = desiredVs.ObjectMeta.Labels
-		err := r.client.Update(context.TODO(), existingVs)
-		if err != nil {
-			return err
-		}
+		return r.client.Update(context.TODO(), existingVs)
 	}
 	return nil
 }

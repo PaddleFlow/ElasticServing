@@ -33,7 +33,7 @@ func NewVirtualServiceBuilder(configMap *core.ConfigMap) *VirtualServiceBuilder 
 	ingressConfig.IngressServiceName = istioIngressConfig.IngressServiceName
 
 	if ingressConfig.IngressGateway == "" || ingressConfig.IngressServiceName == "" {
-		panic(fmt.Errorf("Invalid ingress config, ingressGateway and ingressService are required."))
+		panic(fmt.Errorf("invalid ingress config, ingressGateway and ingressService are required"))
 	}
 
 	return &VirtualServiceBuilder{ingressConfig: ingressConfig}
@@ -63,7 +63,7 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 			Http: []*istiov1alpha3.HTTPRoute{
 				{
 					Route: []*istiov1alpha3.HTTPRouteDestination{
-						&istiov1alpha3.HTTPRouteDestination{
+						{
 							Destination: &istiov1alpha3.Destination{
 								Host: service,
 							},

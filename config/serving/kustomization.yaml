@@ -1,0 +1,8 @@
+namespace: paddleservice-system
+
+namePrefix: paddleservice-
+
+bases:
+- namespace.yaml
+- ../configmap
+- ../samples

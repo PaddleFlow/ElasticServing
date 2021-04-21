@@ -16,7 +16,7 @@ const (
 )
 
 // PaddleService configuration name and namespce
-var (
+const (
 	PaddleServiceConfigName      = "paddleservice-config"
 	PaddleServiceConfigNamespace = "paddleservice-system"
 )
