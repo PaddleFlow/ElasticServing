@@ -6,7 +6,7 @@ data:
   paddleService: |-
     {
         "containerImage": "hub.baidubce.com/paddlepaddle/serving",
-        "version": "latest",
+        "version": "0.6.2-devel",
         "port": 9292
     }
   ingress: |-
@@ -14,4 +14,3 @@ data:
         "ingressGateway" : "istio-ingressgateway",
         "ingressServiceName" : "istio-ingressgateway.istio-system.svc.cluster.local"
     }
-    
