@@ -19,7 +19,7 @@ const (
 	namespace    = "test"
 	prefix       = "/paddlepaddle/test/testresource/"
 	rewrite      = "/paddlepaddle/test/testresource/"
-	service      = "testresource.test.svc.cluster.local"
+	service      = "testresource-service"
 	host         = "*"
 	istioGateway = "paddleflow/paddleflow-gateway"
 
@@ -81,28 +81,16 @@ func TestCreateVirtualService(t *testing.T) {
 				Gateways: []string{istioGateway},
 				Http: []*istiov1alpha3.HTTPRoute{
 					{
-						Match: []*istiov1alpha3.HTTPMatchRequest{
-							{
-								Uri: &istiov1alpha3.StringMatch{
-									MatchType: &istiov1alpha3.StringMatch_Prefix{
-										Prefix: prefix,
-									},
-								},
-							},
-						},
+						Match: nil,
 						Route: []*istiov1alpha3.HTTPRouteDestination{
-							&istiov1alpha3.HTTPRouteDestination{
+							{
 								Destination: &istiov1alpha3.Destination{
 									Host: service,
-									Port: &istiov1alpha3.PortSelector{
-										Number: uint32(80),
-									},
+									Port: nil,
 								},
 							},
 						},
-						Rewrite: &istiov1alpha3.HTTPRewrite{
-							Uri: rewrite,
-						},
+						Rewrite: nil,
 					},
 				},
 			},
