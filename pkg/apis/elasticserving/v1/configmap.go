@@ -1,7 +1,11 @@
 package v1
 
 import (
+	"context"
 	"encoding/json"
+
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	core "k8s.io/api/core/v1"
 
@@ -14,12 +18,26 @@ type PaddleServiceConfig struct {
 	Port           int32  `json:"port"`
 }
 
+func GetPaddleServiceConfig(client client.Client) (*PaddleServiceConfig, error) {
+	configMap := &core.ConfigMap{}
+
+	err := client.Get(context.TODO(), types.NamespacedName{Name: constants.PaddleServiceConfigName, Namespace: constants.PaddleServiceConfigNamespace}, configMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewPaddleServiceConfig(configMap)
+}
+
 func NewPaddleServiceConfig(configMap *core.ConfigMap) (*PaddleServiceConfig, error) {
 	paddleServiceConfig := PaddleServiceConfig{}
 	key := constants.PaddleService
 
-	if err := loadFromConfigMap(configMap, &paddleServiceConfig, key); err != nil {
-		return nil, err
+	if data, ok := configMap.Data[key]; ok {
+		err := json.Unmarshal([]byte(data), &paddleServiceConfig)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &paddleServiceConfig, nil
@@ -30,20 +48,27 @@ type IngressConfig struct {
 	IngressServiceName string `json:"ingressServiceName"`
 }
 
+func GetIngresConfig(client client.Client) (*IngressConfig, error) {
+	configMap := &core.ConfigMap{}
+
+	err := client.Get(context.TODO(), types.NamespacedName{Name: constants.PaddleServiceConfigName, Namespace: constants.PaddleServiceConfigNamespace}, configMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewIngressConfig(configMap)
+}
+
 func NewIngressConfig(configMap *core.ConfigMap) (*IngressConfig, error) {
 	ingressConfig := IngressConfig{}
 	key := constants.Ingress
 
-	if err := loadFromConfigMap(configMap, &ingressConfig, key); err != nil {
-		return nil, err
+	if data, ok := configMap.Data[key]; ok {
+		err := json.Unmarshal([]byte(data), &ingressConfig)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &ingressConfig, nil
-}
-
-func loadFromConfigMap(configMap *core.ConfigMap, config interface{}, key string) error {
-	if data, ok := configMap.Data[key]; ok {
-		return json.Unmarshal([]byte(data), config)
-	}
-	return nil
 }
