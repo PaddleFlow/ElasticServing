@@ -8,14 +8,6 @@ spec:
   deploymentName: paddleservice
   runtimeVersion: paddleserving
   arg:
-    git clone https://github.com/PaddlePaddle/Serving;
-    cd Serving; git checkout v0.6.2;
-    pip3 install -r python/requirements.txt;
-    pip3 install paddle-serving-client==0.6.2;
-    pip3 install paddle-serving-server==0.6.2;
-    pip3 install paddle-serving-app==0.6.2;
-    cd examples/lac; python3 -m paddle_serving_app.package --get_model lac;
-    tar -xzf lac.tar.gz &&
-    python3 lac_web_service.py lac_model/ lac_workdir 9292
+    python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292
   service:
     minScale: 1
