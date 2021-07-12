@@ -2,10 +2,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: config
+  namespace: paddleservice-system
 data:
   paddleService: |-
     {
-        "containerImage": "hub.baidubce.com/paddlepaddle/serving",
+        "containerImage": "registry.baidubce.com/paddlepaddle/serving",
         "version": "0.6.2-devel",
         "port": 9292
     }

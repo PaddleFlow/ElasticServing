@@ -2,6 +2,7 @@ apiVersion: elasticserving.paddlepaddle.org/v1
 kind: PaddleService
 metadata:
   name: sample
+  namespace: paddleservice-system
 spec:
   # Add fields here
   deploymentName: paddleservice
