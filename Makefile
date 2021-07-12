@@ -27,7 +27,7 @@ run: generate fmt vet manifests
 
 # Install CRDs into a cluster
 install: assets
-	kubectl apply -f assets/crd.yaml
+	kubectl apply -f assets/crd.yaml --validate=false
 
 # Uninstall CRDs from a cluster
 uninstall:

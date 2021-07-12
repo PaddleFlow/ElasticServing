@@ -9,6 +9,7 @@ import (
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
@@ -18,6 +19,13 @@ const (
 	ActualTestServiceName      = "test-service"
 	PaddleServiceDefaultCPU    = "0.1"
 	PaddleServiceDefaultMemory = "128Mi"
+)
+
+var (
+	command              = []string{"/bin/bash", "-c"}
+	args                 = []string{""}
+	containerConcurrency = int64(0)
+	timeoutSeconds       = int64(300)
 )
 
 var defaultResources = core.ResourceList{
@@ -31,6 +39,18 @@ var configMapData = map[string]string{
 		"version": "latest",
         "port": 9292
 	}`,
+}
+
+var annotations = map[string]string{
+	"autoscaling.knative.dev/class":                       "kpa.autoscaling.knative.dev",
+	"autoscaling.knative.dev/maxScale":                    "10",
+	"autoscaling.knative.dev/metric":                      "concurrency",
+	"autoscaling.knative.dev/minScale":                    "1",
+	"autoscaling.knative.dev/panicThresholdPercentage":    "200",
+	"autoscaling.knative.dev/panicWindowPercentage":       "10",
+	"autoscaling.knative.dev/target":                      "100",
+	"autoscaling.knative.dev/targetUtilizationPercentage": "70",
+	"autoscaling.knative.dev/window":                      "60s",
 }
 
 var paddlesvc = elasticservingv1.PaddleService{
@@ -60,8 +80,11 @@ var defaultService = &knservingv1.Service{
 					Labels: map[string]string{
 						"PaddleService": paddlesvc.Name,
 					},
+					Annotations: annotations,
 				},
 				Spec: knservingv1.RevisionSpec{
+					ContainerConcurrency: &containerConcurrency,
+					TimeoutSeconds:       &timeoutSeconds,
 					PodSpec: core.PodSpec{
 						Containers: []core.Container{
 							{
@@ -70,6 +93,20 @@ var defaultService = &knservingv1.Service{
 								Image:           image,
 								Ports: []core.ContainerPort{
 									{ContainerPort: port, Name: "http1", Protocol: "TCP"},
+								},
+								Command: command,
+								Args:    args,
+								ReadinessProbe: &core.Probe{
+									SuccessThreshold:    1,
+									InitialDelaySeconds: 0,
+									TimeoutSeconds:      1,
+									FailureThreshold:    100,
+									PeriodSeconds:       100,
+									Handler: core.Handler{
+										TCPSocket: &core.TCPSocketAction{
+											Port: intstr.FromInt(0),
+										},
+									},
 								},
 								Resources: paddlesvc.Spec.Resources,
 							},
