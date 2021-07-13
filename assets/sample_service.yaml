@@ -18,13 +18,13 @@ data:
     }
 kind: ConfigMap
 metadata:
-  name: paddleservice-config
+  name: paddleservice-paddleservice-config
   namespace: paddleservice-system
 ---
 apiVersion: elasticserving.paddlepaddle.org/v1
 kind: PaddleService
 metadata:
-  name: paddleservice-sample
+  name: paddleservice-paddleservice-sample
   namespace: paddleservice-system
 spec:
   arg: python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir

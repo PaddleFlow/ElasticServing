@@ -457,7 +457,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: ruminateer/paddleservice-controller:latest
+        image: jinmionhaobaidu/paddleservice-controller:latest
         name: manager
         resources:
           limits:
