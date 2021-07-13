@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: paddleservice-config
+  name: config
   namespace: paddleservice-system
 data:
   paddleService: |-
