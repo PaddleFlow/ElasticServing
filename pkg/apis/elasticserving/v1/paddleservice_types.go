@@ -38,6 +38,15 @@ type PaddleServiceSpec struct {
 	RuntimeVersion string `json:"runtimeVersion,omitempty"`
 	// Defaults to requests and limits of 1CPU, 2Gb MEM.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+	// DefaultTag defines default PaddleService endpoints
+	// +required
+	DefaultTag string `json:"defaultTag"`
+	// CanaryTag defines an alternative PaddleService endpoints
+	// +optional
+	CanaryTag string `json:"canaryTag,omitempty"`
+	// CanaryTrafficPercent defines the percentage of traffic going to canary PaddleService endpoints
+	// +optional
+	CanaryTrafficPercent int `json:"canaryTrafficPercent,omitempty"`
 	// +optional
 	Service ServiceSpec `json:"service,omitempty"`
 }

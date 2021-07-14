@@ -10,7 +10,7 @@ import (
 
 type PaddleServiceConfig struct {
 	ContainerImage string `json:"containerImage"`
-	Version        string `json:"version"`
+	Tag            string `json:"tag"`
 	Port           int32  `json:"port"`
 }
 

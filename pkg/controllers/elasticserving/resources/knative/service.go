@@ -32,7 +32,7 @@ func NewServiceBuilder(configMap *core.ConfigMap) *ServiceBuilder {
 		fmt.Printf("Failed to get paddle service config %s", err)
 		panic("Failed to get paddle service config")
 	}
-	serviceConfig.Image = paddleServiceConfig.ContainerImage + ":" + paddleServiceConfig.Version
+	serviceConfig.Image = paddleServiceConfig.ContainerImage + ":" + paddleServiceConfig.Tag
 	serviceConfig.Port = paddleServiceConfig.Port
 	return &ServiceBuilder{serviceConfig: serviceConfig}
 }

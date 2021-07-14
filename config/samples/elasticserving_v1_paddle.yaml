@@ -9,5 +9,6 @@ spec:
   runtimeVersion: paddleserving
   arg:
     python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292
+  defaultTag: latest
   service:
     minScale: 1
