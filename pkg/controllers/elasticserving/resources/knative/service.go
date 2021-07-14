@@ -93,9 +93,10 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 										InitialDelaySeconds: constants.ReadinessInitialDelaySeconds,
 										FailureThreshold:    constants.ReadinessFailureThreshold,
 										PeriodSeconds:       constants.ReadinessPeriodSeconds,
+										TimeoutSeconds:      constants.ReadinessTimeoutSeconds,
 										Handler: core.Handler{
 											TCPSocket: &core.TCPSocketAction{
-												Port: intstr.FromInt(int(r.serviceConfig.Port)),
+												Port: intstr.FromInt(0),
 											},
 										},
 									},
@@ -105,7 +106,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 										PeriodSeconds:       constants.LivenessPeriodSeconds,
 										Handler: core.Handler{
 											TCPSocket: &core.TCPSocketAction{
-												Port: intstr.FromInt(int(r.serviceConfig.Port)),
+												Port: intstr.FromInt(0),
 											},
 										},
 									},

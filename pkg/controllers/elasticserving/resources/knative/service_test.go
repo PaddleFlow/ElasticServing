@@ -30,6 +30,7 @@ var (
 	readinessInitialDelaySeconds = 60
 	readinessFailureThreshold    = 3
 	readinessPeriodSeconds       = 10
+	readinessTimeoutSeconds      = 180
 	livenessInitialDelaySeconds  = 60
 	livenessFailureThreshold     = 3
 	livenessPeriodSeconds        = 10
@@ -107,9 +108,10 @@ var defaultService = &knservingv1.Service{
 									InitialDelaySeconds: int32(readinessInitialDelaySeconds),
 									FailureThreshold:    int32(readinessFailureThreshold),
 									PeriodSeconds:       int32(readinessPeriodSeconds),
+									TimeoutSeconds:      int32(readinessTimeoutSeconds),
 									Handler: core.Handler{
 										TCPSocket: &core.TCPSocketAction{
-											Port: intstr.FromInt(port),
+											Port: intstr.FromInt(0),
 										},
 									},
 								},
@@ -119,7 +121,7 @@ var defaultService = &knservingv1.Service{
 									PeriodSeconds:       int32(livenessPeriodSeconds),
 									Handler: core.Handler{
 										TCPSocket: &core.TCPSocketAction{
-											Port: intstr.FromInt(port),
+											Port: intstr.FromInt(0),
 										},
 									},
 								},
