@@ -38,6 +38,15 @@ var (
 )
 
 var (
+	ReadinessInitialDelaySeconds int32 = 60
+	ReadinessFailureThreshold    int32 = 3
+	ReadinessPeriodSeconds       int32 = 10
+	LivenessInitialDelaySeconds  int32 = 60
+	LivenessFailureThreshold     int32 = 3
+	LivenessPeriodSeconds        int32 = 10
+)
+
+var (
 	ServiceAnnotationsList = []string{
 		autoscaling.MinScaleAnnotationKey,
 		autoscaling.MaxScaleAnnotationKey,

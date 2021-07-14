@@ -82,19 +82,30 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 									Name:            paddlesvc.Spec.RuntimeVersion,
 									Image:           r.serviceConfig.Image,
 									Ports: []core.ContainerPort{
-										{ContainerPort: r.serviceConfig.Port, Name: constants.PaddleServiceDefaultPodName, Protocol: core.ProtocolTCP},
+										{ContainerPort: r.serviceConfig.Port,
+											Name:     constants.PaddleServiceDefaultPodName,
+											Protocol: core.ProtocolTCP,
+										},
 									},
 									Command: command,
 									Args:    args,
 									ReadinessProbe: &core.Probe{
-										SuccessThreshold:    1,
-										InitialDelaySeconds: 0,
-										TimeoutSeconds:      1,
-										FailureThreshold:    100,
-										PeriodSeconds:       100,
+										InitialDelaySeconds: constants.ReadinessInitialDelaySeconds,
+										FailureThreshold:    constants.ReadinessFailureThreshold,
+										PeriodSeconds:       constants.ReadinessPeriodSeconds,
 										Handler: core.Handler{
 											TCPSocket: &core.TCPSocketAction{
-												Port: intstr.FromInt(0),
+												Port: intstr.FromInt(int(r.serviceConfig.Port)),
+											},
+										},
+									},
+									LivenessProbe: &core.Probe{
+										InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+										FailureThreshold:    constants.LivenessFailureThreshold,
+										PeriodSeconds:       constants.LivenessPeriodSeconds,
+										Handler: core.Handler{
+											TCPSocket: &core.TCPSocketAction{
+												Port: intstr.FromInt(int(r.serviceConfig.Port)),
 											},
 										},
 									},

@@ -26,6 +26,13 @@ var (
 	args                 = []string{""}
 	containerConcurrency = int64(0)
 	timeoutSeconds       = int64(300)
+
+	readinessInitialDelaySeconds = 60
+	readinessFailureThreshold    = 3
+	readinessPeriodSeconds       = 10
+	livenessInitialDelaySeconds  = 60
+	livenessFailureThreshold     = 3
+	livenessPeriodSeconds        = 10
 )
 
 var defaultResources = core.ResourceList{
@@ -97,14 +104,22 @@ var defaultService = &knservingv1.Service{
 								Command: command,
 								Args:    args,
 								ReadinessProbe: &core.Probe{
-									SuccessThreshold:    1,
-									InitialDelaySeconds: 0,
-									TimeoutSeconds:      1,
-									FailureThreshold:    100,
-									PeriodSeconds:       100,
+									InitialDelaySeconds: int32(readinessInitialDelaySeconds),
+									FailureThreshold:    int32(readinessFailureThreshold),
+									PeriodSeconds:       int32(readinessPeriodSeconds),
 									Handler: core.Handler{
 										TCPSocket: &core.TCPSocketAction{
-											Port: intstr.FromInt(0),
+											Port: intstr.FromInt(port),
+										},
+									},
+								},
+								LivenessProbe: &core.Probe{
+									InitialDelaySeconds: int32(livenessInitialDelaySeconds),
+									FailureThreshold:    int32(livenessFailureThreshold),
+									PeriodSeconds:       int32(livenessPeriodSeconds),
+									Handler: core.Handler{
+										TCPSocket: &core.TCPSocketAction{
+											Port: intstr.FromInt(port),
 										},
 									},
 								},
