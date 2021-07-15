@@ -16,7 +16,7 @@ import (
 const (
 	image                      = "hub.baidubce.com/paddlepaddle/serving:latest"
 	port                       = 9292
-	ActualTestServiceName      = "test-service"
+	ActualTestServiceName      = "test-default-service"
 	PaddleServiceDefaultCPU    = "0.1"
 	PaddleServiceDefaultMemory = "128Mi"
 )
@@ -145,7 +145,7 @@ func TestPaddleServiceToKnativeService(t *testing.T) {
 	serviceBuilder := NewServiceBuilder(&paddlesvc)
 
 	for name, scenario := range scenarios {
-		actualDefaultService, err := serviceBuilder.CreateService(ActualTestServiceName, &paddlesvc)
+		actualDefaultService, err := serviceBuilder.CreateService(ActualTestServiceName, &paddlesvc, false)
 		if err != nil {
 			t.Errorf("Test %q unexpected error %s", name, err.Error())
 		}

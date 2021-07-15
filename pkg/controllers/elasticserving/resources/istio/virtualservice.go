@@ -64,8 +64,15 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 				{
 					Route: []*istiov1alpha3.HTTPRouteDestination{
 						{
+							Headers: &istiov1alpha3.Headers{
+								Request: &istiov1alpha3.Headers_HeaderOperations{
+									Set: map[string]string{
+										"Host": service + ".paddleservice-system.example.com",
+									},
+								},
+							},
 							Destination: &istiov1alpha3.Destination{
-								Host: service,
+								Host: host,
 							},
 						},
 					},

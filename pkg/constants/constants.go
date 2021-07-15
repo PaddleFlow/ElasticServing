@@ -63,5 +63,9 @@ var (
 )
 
 func DefaultServiceName(name string) string {
-	return name + "-service"
+	return name + "-default-service"
+}
+
+func CanaryServiceName(name string) string {
+	return name + "-canary-service"
 }

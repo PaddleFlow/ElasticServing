@@ -16,23 +16,52 @@ import (
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
 )
 
-type ServiceConfig struct {
-	Image string `json:"image,omitempty"`
-	Port  int32  `json:"port,omitempty"`
+type EndpointConfig struct {
+	Image    string `json:"image,omitempty"`
+	Port     int32  `json:"port,omitempty"`
+	Argument string `json:"arg,omitempty"`
 }
 
 type ServiceBuilder struct {
-	serviceConfig *ServiceConfig
+	defaultEndpointConfig *EndpointConfig
+	canaryEndpointConfig  *EndpointConfig
 }
 
 func NewServiceBuilder(paddlesvc *elasticservingv1.PaddleService) *ServiceBuilder {
-	serviceConfig := &ServiceConfig{}
-	serviceConfig.Image = paddlesvc.Spec.Default.ContainerImage + ":" + paddlesvc.Spec.Default.Tag
-	serviceConfig.Port = paddlesvc.Spec.Default.Port
-	return &ServiceBuilder{serviceConfig: serviceConfig}
+	defaultEndpointConfig := &EndpointConfig{}
+	defaultEndpointConfig.Image = paddlesvc.Spec.Default.ContainerImage + ":" + paddlesvc.Spec.Default.Tag
+	defaultEndpointConfig.Port = paddlesvc.Spec.Default.Port
+	defaultEndpointConfig.Argument = paddlesvc.Spec.Default.Argument
+	if paddlesvc.Spec.Canary == nil {
+		return &ServiceBuilder{
+			defaultEndpointConfig: defaultEndpointConfig,
+			canaryEndpointConfig:  nil,
+		}
+	} else {
+		canaryEndpointConfig := &EndpointConfig{}
+		canaryEndpointConfig.Image = paddlesvc.Spec.Default.ContainerImage + ":" + paddlesvc.Spec.Default.Tag
+		canaryEndpointConfig.Port = paddlesvc.Spec.Default.Port
+		canaryEndpointConfig.Argument = paddlesvc.Spec.Default.Argument
+		return &ServiceBuilder{
+			defaultEndpointConfig: defaultEndpointConfig,
+			canaryEndpointConfig:  canaryEndpointConfig,
+		}
+	}
 }
 
-func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticservingv1.PaddleService) (*knservingv1.Service, error) {
+func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticservingv1.PaddleService, isCanary bool) (*knservingv1.Service, error) {
+	arg := r.defaultEndpointConfig.Argument
+	containerImage := r.defaultEndpointConfig.Image
+	containerPort := r.defaultEndpointConfig.Port
+
+	if isCanary && r.canaryEndpointConfig == nil {
+		return nil, nil
+	} else if isCanary && r.canaryEndpointConfig != nil {
+		arg = r.canaryEndpointConfig.Argument
+		containerImage = r.canaryEndpointConfig.Image
+		containerPort = r.canaryEndpointConfig.Port
+	}
+
 	metadata := paddlesvc.ObjectMeta
 	paddlesvcSpec := paddlesvc.Spec
 
@@ -49,7 +78,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 
 	command := []string{"/bin/bash", "-c"}
 	args := []string{
-		paddlesvc.Spec.Default.Argument,
+		arg,
 	}
 
 	service := &knservingv1.Service{
@@ -75,9 +104,9 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 								{
 									ImagePullPolicy: core.PullAlways,
 									Name:            paddlesvc.Spec.RuntimeVersion,
-									Image:           r.serviceConfig.Image,
+									Image:           containerImage,
 									Ports: []core.ContainerPort{
-										{ContainerPort: r.serviceConfig.Port,
+										{ContainerPort: containerPort,
 											Name:     constants.PaddleServiceDefaultPodName,
 											Protocol: core.ProtocolTCP,
 										},

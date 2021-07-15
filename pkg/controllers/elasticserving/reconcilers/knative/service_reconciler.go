@@ -49,10 +49,25 @@ func NewServiceReconciler(client client.Client, scheme *runtime.Scheme, paddlesv
 // +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddleservices/status,verbs=get;update;patch
 
 func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService) error {
+	if err := r.reconcileService(paddlesvc, false); err != nil {
+		return err
+	}
+
+	if err := r.reconcileService(paddlesvc, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *ServiceReconciler) reconcileService(paddlesvc *elasticservingv1.PaddleService, isCanary bool) error {
 	var service *knservingv1.Service
 	var err error
 	serviceName := constants.DefaultServiceName(paddlesvc.Name)
-	service, err = r.serviceBuilder.CreateService(serviceName, paddlesvc)
+	if isCanary {
+		serviceName = constants.CanaryServiceName(paddlesvc.Name)
+	}
+	service, err = r.serviceBuilder.CreateService(serviceName, paddlesvc, isCanary)
 	if err != nil {
 		return err
 	}
@@ -63,15 +78,15 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		}
 
 		// TODO: Modify status
-		// paddlesvc.Status.PropagateStatus(nil)
+		paddlesvc.Status.PropagateStatus(nil)
 		return nil
 	}
 
-	if _, err := r.reconcileService(paddlesvc, service); err != nil {
+	if status, err := r.reconcileServiceComponent(paddlesvc, service); err != nil {
 		return err
 	} else {
 		// TODO: Modify status
-		// paddlesvc.Status.PropagateStatus(status)
+		paddlesvc.Status.PropagateStatus(status)
 	}
 
 	return nil
@@ -94,7 +109,7 @@ func (r *ServiceReconciler) finalizeService(serviceName, namespace string) error
 	return nil
 }
 
-func (r *ServiceReconciler) reconcileService(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service) (*knservingv1.ServiceStatus, error) {
+func (r *ServiceReconciler) reconcileServiceComponent(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service) (*knservingv1.ServiceStatus, error) {
 	// Set Paddlesvc as owner of desired service
 	if err := controllerutil.SetControllerReference(paddlesvc, desired, r.scheme); err != nil {
 		return nil, err
