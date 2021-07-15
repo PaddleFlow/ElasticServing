@@ -78,15 +78,15 @@ func (r *ServiceReconciler) reconcileService(paddlesvc *elasticservingv1.PaddleS
 		}
 
 		// TODO: Modify status
-		paddlesvc.Status.PropagateStatus(nil)
+		// paddlesvc.Status.PropagateStatus(nil)
 		return nil
 	}
 
-	if status, err := r.reconcileServiceComponent(paddlesvc, service); err != nil {
+	if _, err := r.reconcileServiceComponent(paddlesvc, service); err != nil {
 		return err
 	} else {
 		// TODO: Modify status
-		paddlesvc.Status.PropagateStatus(status)
+		// paddlesvc.Status.PropagateStatus(status)
 	}
 
 	return nil
