@@ -18,6 +18,7 @@ require (
 	knative.dev/pkg v0.0.0-20200922164940-4bf40ad82aab
 	knative.dev/serving v0.18.0
 	sigs.k8s.io/controller-runtime v0.6.1
+	sigs.k8s.io/controller-tools v0.3.1-0.20200528125929-5c0c6ae3b64b // indirect
 )
 
 replace (
