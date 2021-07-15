@@ -32,23 +32,33 @@ type PaddleServiceSpec struct {
 
 	// +kubebuilder:validation:MaxLength=64
 	DeploymentName string `json:"deploymentName"`
-	// Argument for Service
-	Argument string `json:"arg,omitempty"`
 	// Version of the service
 	RuntimeVersion string `json:"runtimeVersion,omitempty"`
 	// Defaults to requests and limits of 1CPU, 2Gb MEM.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 	// DefaultTag defines default PaddleService endpoints
 	// +required
-	DefaultTag string `json:"defaultTag"`
+	Default *EndpointSpec `json:"default"`
 	// CanaryTag defines an alternative PaddleService endpoints
 	// +optional
-	CanaryTag string `json:"canaryTag,omitempty"`
+	Canary *EndpointSpec `json:"canary,omitempty"`
 	// CanaryTrafficPercent defines the percentage of traffic going to canary PaddleService endpoints
 	// +optional
 	CanaryTrafficPercent int `json:"canaryTrafficPercent,omitempty"`
 	// +optional
 	Service ServiceSpec `json:"service,omitempty"`
+}
+
+// EndpointSpec defines the running containers
+type EndpointSpec struct {
+	// +required
+	ContainerImage string `json:"containerImage"`
+	// +required
+	Tag string `json:"tag"`
+	// +required
+	Port int32 `json:"port"`
+	// +optional
+	Argument string `json:"arg,omitempty"`
 }
 
 // ServiceSpec defines the configuration for Knative Service.

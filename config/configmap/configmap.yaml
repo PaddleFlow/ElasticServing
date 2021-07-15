@@ -4,12 +4,12 @@ metadata:
   name: config
   namespace: paddleservice-system
 data:
-  paddleService: |-
-    {
-        "containerImage": "jinmionhaobaidu/pdservinglac",
-        "tag": "latest",
-        "port": 9292
-    }
+  # paddleService: |-
+  #   {
+  #       "containerImage": "jinmionhaobaidu/pdservinglac",
+  #       "tag": "latest",
+  #       "port": 9292
+  #   }
   ingress: |-
     {
         "ingressGateway" : "istio-ingressgateway",

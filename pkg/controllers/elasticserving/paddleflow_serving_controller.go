@@ -86,7 +86,7 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 		return reconcile.Result{}, err
 	}
 
-	serviceReconciler := knative.NewServiceReconciler(r.Client, r.Scheme, configMap)
+	serviceReconciler := knative.NewServiceReconciler(r.Client, r.Scheme, &paddlesvc)
 
 	if err := serviceReconciler.Reconcile(&paddlesvc); err != nil {
 		r.Log.Error(err, "Failed to finish knative reconcile")

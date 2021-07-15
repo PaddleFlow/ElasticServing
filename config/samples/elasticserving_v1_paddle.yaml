@@ -7,8 +7,12 @@ spec:
   # Add fields here
   deploymentName: paddleservice
   runtimeVersion: paddleserving
-  arg:
-    python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292
+  default:
+    containerImage: "jinmionhaobaidu/pdservinglac"
+    tag: "latest"
+    port: 9292
+    arg:
+      python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292
   defaultTag: latest
   service:
     minScale: 1

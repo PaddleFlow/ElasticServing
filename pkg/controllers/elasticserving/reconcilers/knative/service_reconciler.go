@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 
-	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,11 +28,11 @@ type ServiceReconciler struct {
 	serviceBuilder *knative.ServiceBuilder
 }
 
-func NewServiceReconciler(client client.Client, scheme *runtime.Scheme, configMap *core.ConfigMap) *ServiceReconciler {
+func NewServiceReconciler(client client.Client, scheme *runtime.Scheme, paddlesvc *elasticservingv1.PaddleService) *ServiceReconciler {
 	return &ServiceReconciler{
 		client:         client,
 		scheme:         scheme,
-		serviceBuilder: knative.NewServiceBuilder(configMap),
+		serviceBuilder: knative.NewServiceBuilder(paddlesvc),
 	}
 }
 
@@ -121,7 +120,7 @@ func (r *ServiceReconciler) reconcileService(paddlesvc *elasticservingv1.PaddleS
 	// Reconcile differences and update
 	diff, err := kmp.SafeDiff(desired.Spec.ConfigurationSpec, existing.Spec.ConfigurationSpec)
 	if err != nil {
-		return &existing.Status, fmt.Errorf("Failed to diff Knative Service: %v", err)
+		return &existing.Status, fmt.Errorf("failed to diff knative service: %v", err)
 	}
 
 	log.Info("Reconciling Knative Service diff (-desired, +observed):", "diff", diff)

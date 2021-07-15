@@ -25,15 +25,10 @@ type ServiceBuilder struct {
 	serviceConfig *ServiceConfig
 }
 
-func NewServiceBuilder(configMap *core.ConfigMap) *ServiceBuilder {
+func NewServiceBuilder(paddlesvc *elasticservingv1.PaddleService) *ServiceBuilder {
 	serviceConfig := &ServiceConfig{}
-	paddleServiceConfig, err := elasticservingv1.NewPaddleServiceConfig(configMap)
-	if err != nil {
-		fmt.Printf("Failed to get paddle service config %s", err)
-		panic("Failed to get paddle service config")
-	}
-	serviceConfig.Image = paddleServiceConfig.ContainerImage + ":" + paddleServiceConfig.Tag
-	serviceConfig.Port = paddleServiceConfig.Port
+	serviceConfig.Image = paddlesvc.Spec.Default.ContainerImage + ":" + paddlesvc.Spec.Default.Tag
+	serviceConfig.Port = paddlesvc.Spec.Default.Port
 	return &ServiceBuilder{serviceConfig: serviceConfig}
 }
 
@@ -54,7 +49,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 
 	command := []string{"/bin/bash", "-c"}
 	args := []string{
-		paddlesvc.Spec.Argument,
+		paddlesvc.Spec.Default.Argument,
 	}
 
 	service := &knservingv1.Service{

@@ -41,14 +41,6 @@ var defaultResources = core.ResourceList{
 	core.ResourceMemory: resource.MustParse(PaddleServiceDefaultMemory),
 }
 
-var configMapData = map[string]string{
-	"paddleService": `{
-		"containerImage": "hub.baidubce.com/paddlepaddle/serving",
-		"version": "latest",
-        "port": 9292
-	}`,
-}
-
 var annotations = map[string]string{
 	"autoscaling.knative.dev/class":                       "kpa.autoscaling.knative.dev",
 	"autoscaling.knative.dev/maxScale":                    "10",
@@ -72,6 +64,11 @@ var paddlesvc = elasticservingv1.PaddleService{
 		Resources: core.ResourceRequirements{
 			Requests: defaultResources,
 			Limits:   defaultResources,
+		},
+		Default: &elasticservingv1.EndpointSpec{
+			ContainerImage: "hub.baidubce.com/paddlepaddle/serving",
+			Tag:            "latest",
+			Port:           9292,
 		},
 	},
 }
@@ -145,9 +142,7 @@ func TestPaddleServiceToKnativeService(t *testing.T) {
 			expectedDefault: defaultService,
 		},
 	}
-	serviceBuilder := NewServiceBuilder(&core.ConfigMap{
-		Data: configMapData,
-	})
+	serviceBuilder := NewServiceBuilder(&paddlesvc)
 
 	for name, scenario := range scenarios {
 		actualDefaultService, err := serviceBuilder.CreateService(ActualTestServiceName, &paddlesvc)
