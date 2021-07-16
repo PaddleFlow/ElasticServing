@@ -77,7 +77,7 @@ func TestCreateVirtualService(t *testing.T) {
 			},
 			ObjectMeta: metav1.ObjectMeta{Name: serviceName, Namespace: namespace},
 			Spec: istiov1alpha3.VirtualService{
-				Hosts:    []string{host},
+				Hosts:    []string{service + ".paddleservice-system.example.com"},
 				Gateways: []string{istioGateway},
 				Http: []*istiov1alpha3.HTTPRoute{
 					{
@@ -95,6 +95,7 @@ func TestCreateVirtualService(t *testing.T) {
 									Host: host,
 									Port: nil,
 								},
+								Weight: 100,
 							},
 						},
 						Rewrite: nil,
