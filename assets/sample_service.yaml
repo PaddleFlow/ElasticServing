@@ -24,8 +24,7 @@ metadata:
   namespace: paddleservice-system
 spec:
   default:
-    arg: python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir
-      9292
+    arg: python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292
     containerImage: jinmionhaobaidu/pdservinglac
     port: 9292
     tag: latest

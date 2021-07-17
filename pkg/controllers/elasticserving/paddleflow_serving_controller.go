@@ -20,6 +20,7 @@ import (
 	"context"
 
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
+	"ElasticServing/pkg/controllers/elasticserving/reconcilers/istio"
 	"ElasticServing/pkg/controllers/elasticserving/reconcilers/knative"
 
 	"ElasticServing/pkg/constants"
@@ -77,13 +78,13 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 		return ctrl.Result{}, err
 	}
 
-	// istioReconciler := istio.NewVirtualServiceReconciler(r.Client, r.Scheme, configMap)
+	istioReconciler := istio.NewVirtualServiceReconciler(r.Client, r.Scheme, configMap)
 
-	// if err := istioReconciler.Reconcile(&paddlesvc); err != nil {
-	// 	r.Log.Error(err, "Failed to finish istio reconcile")
-	// 	r.Recorder.Eventf(&paddlesvc, core.EventTypeWarning, "InternalError", err.Error())
-	// 	return reconcile.Result{}, err
-	// }
+	if err := istioReconciler.Reconcile(&paddlesvc); err != nil {
+		r.Log.Error(err, "Failed to finish istio reconcile")
+		r.Recorder.Eventf(&paddlesvc, core.EventTypeWarning, "InternalError", err.Error())
+		return reconcile.Result{}, err
+	}
 
 	serviceReconciler := knative.NewServiceReconciler(r.Client, r.Scheme, &paddlesvc)
 
