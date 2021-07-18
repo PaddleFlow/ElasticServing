@@ -115,7 +115,11 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 									Command: command,
 									Args:    args,
 									ReadinessProbe: &core.Probe{
-										SuccessThreshold: constants.SuccessThreshold,
+										SuccessThreshold:    constants.SuccessThreshold,
+										InitialDelaySeconds: constants.ReadinessInitialDelaySeconds,
+										TimeoutSeconds:      constants.ReadinessTimeoutSeconds,
+										FailureThreshold:    constants.ReadinessFailureThreshold,
+										PeriodSeconds:       constants.ReadinessPeriodSeconds,
 										Handler: core.Handler{
 											TCPSocket: &core.TCPSocketAction{
 												Port: intstr.FromInt(0),
