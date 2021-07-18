@@ -53,9 +53,9 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		return err
 	}
 
-	if err := r.reconcileService(paddlesvc, true); err != nil {
-		return err
-	}
+	// if err := r.reconcileService(paddlesvc, true); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -139,6 +139,8 @@ func (r *ServiceReconciler) reconcileServiceComponent(paddlesvc *elasticservingv
 	}
 
 	log.Info("Reconciling Knative Service diff (-desired, +observed):", "diff", diff)
+	log.Info("LOG:", "desired is", desired.Spec.ConfigurationSpec)
+	log.Info("LOG:", "existing is", existing.Spec.ConfigurationSpec)
 	log.Info("Updating Knative Service", "namespace", desired.Namespace, "name", desired.Name)
 
 	existing.Spec.ConfigurationSpec = desired.Spec.ConfigurationSpec

@@ -93,6 +93,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
 							"PaddleService": paddlesvc.Name,
+							"app":           serviceName,
 						},
 						Annotations: annotations,
 					},
@@ -114,26 +115,23 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 									Command: command,
 									Args:    args,
 									ReadinessProbe: &core.Probe{
-										InitialDelaySeconds: constants.ReadinessInitialDelaySeconds,
-										FailureThreshold:    constants.ReadinessFailureThreshold,
-										PeriodSeconds:       constants.ReadinessPeriodSeconds,
-										TimeoutSeconds:      constants.ReadinessTimeoutSeconds,
+										SuccessThreshold: constants.SuccessThreshold,
 										Handler: core.Handler{
 											TCPSocket: &core.TCPSocketAction{
 												Port: intstr.FromInt(0),
 											},
 										},
 									},
-									LivenessProbe: &core.Probe{
-										InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
-										FailureThreshold:    constants.LivenessFailureThreshold,
-										PeriodSeconds:       constants.LivenessPeriodSeconds,
-										Handler: core.Handler{
-											TCPSocket: &core.TCPSocketAction{
-												Port: intstr.FromInt(0),
-											},
-										},
-									},
+									// LivenessProbe: &core.Probe{
+									// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+									// 	FailureThreshold:    constants.LivenessFailureThreshold,
+									// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
+									// 	Handler: core.Handler{
+									// 		TCPSocket: &core.TCPSocketAction{
+									// 			Port: intstr.FromInt(0),
+									// 		},
+									// 	},
+									// },
 									Resources: resources,
 								},
 							},

@@ -44,7 +44,7 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 	serviceName := constants.DefaultServiceName(paddlesvc.Name)
 
 	istioGateway := r.ingressConfig.IngressGateway
-	host := r.ingressConfig.IngressServiceName
+	// host := r.ingressConfig.IngressServiceName
 
 	vs := &v1alpha3.VirtualService{
 		TypeMeta: metav1.TypeMeta{
@@ -58,10 +58,12 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 			Annotations: paddlesvc.Annotations,
 		},
 		Spec: istiov1alpha3.VirtualService{
-			Hosts:    []string{serviceName + ".paddleservice-system.example.com"},
+			Hosts:    []string{paddlesvc.Name},
 			Gateways: []string{istioGateway},
+
 			Http: []*istiov1alpha3.HTTPRoute{
 				{
+					Match: []*istiov1alpha3.HTTPMatchRequest{{}},
 					Route: []*istiov1alpha3.HTTPRouteDestination{
 						{
 							Headers: &istiov1alpha3.Headers{
@@ -72,7 +74,7 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 								},
 							},
 							Destination: &istiov1alpha3.Destination{
-								Host: host,
+								Host: paddlesvc.Name,
 							},
 							Weight: 100,
 						},

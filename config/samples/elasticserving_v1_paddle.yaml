@@ -13,6 +13,12 @@ spec:
     port: 9292
     arg:
       python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292
-  defaultTag: latest
+  # canary:
+  #   containerImage: "jinmionhaobaidu/pdservinglac"
+  #   tag: "latest"
+  #   port: 9292
+  #   arg:
+  #     python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292
+  # canaryTrafficPercent: 50
   service:
     minScale: 1

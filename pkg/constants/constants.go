@@ -42,6 +42,7 @@ var (
 	ReadinessFailureThreshold    int32 = 3
 	ReadinessPeriodSeconds       int32 = 10
 	ReadinessTimeoutSeconds      int32 = 180
+	SuccessThreshold             int32 = 1
 	LivenessInitialDelaySeconds  int32 = 60
 	LivenessFailureThreshold     int32 = 3
 	LivenessPeriodSeconds        int32 = 10
