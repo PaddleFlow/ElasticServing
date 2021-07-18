@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    istio-injection: enabled
+  name: paddleservice-system
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: paddleservice-sample
+  namespace: paddleservice-system
+spec:
+  template:
+    spec:
+      containers:
+        - image: jinmionhaobaidu/pdservinglac:latest
+          ports:
+          - name: http1
+            containerPort: 9292
+          command: ["/bin/bash", "-c"]
+          args: ["python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292"]
