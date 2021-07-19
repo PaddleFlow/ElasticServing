@@ -1,7 +1,6 @@
 package knative
 
 import (
-	"ElasticServing/pkg/constants"
 	"ElasticServing/pkg/controllers/elasticserving/resources/knative"
 	"context"
 	"fmt"
@@ -49,25 +48,11 @@ func NewServiceReconciler(client client.Client, scheme *runtime.Scheme, paddlesv
 // +kubebuilder:rbac:groups=elasticserving.paddlepaddle.org,resources=paddleservices/status,verbs=get;update;patch
 
 func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService) error {
-	if err := r.reconcileService(paddlesvc, false); err != nil {
-		return err
-	}
-
-	// if err := r.reconcileService(paddlesvc, true); err != nil {
-	// 	return err
-	// }
-
-	return nil
-}
-
-func (r *ServiceReconciler) reconcileService(paddlesvc *elasticservingv1.PaddleService, isCanary bool) error {
 	var service *knservingv1.Service
+	var serviceWithCanary *knservingv1.Service
 	var err error
-	serviceName := constants.DefaultServiceName(paddlesvc.Name)
-	if isCanary {
-		serviceName = constants.CanaryServiceName(paddlesvc.Name)
-	}
-	service, err = r.serviceBuilder.CreateService(serviceName, paddlesvc, isCanary)
+	serviceName := paddlesvc.Name
+	service, err = r.serviceBuilder.CreateService(serviceName, paddlesvc, false)
 	if err != nil {
 		return err
 	}
@@ -82,12 +67,35 @@ func (r *ServiceReconciler) reconcileService(paddlesvc *elasticservingv1.PaddleS
 		return nil
 	}
 
-	if _, err := r.reconcileServiceComponent(paddlesvc, service); err != nil {
+	if _, err := r.reconcileServiceComponent(paddlesvc, serviceWithCanary); err != nil {
 		return err
 	} else {
 		// TODO: Modify status
 		// paddlesvc.Status.PropagateStatus(status)
 	}
+
+	serviceWithCanary, err = r.serviceBuilder.CreateService(serviceName, paddlesvc, true)
+	if err != nil {
+		return err
+	}
+
+	if serviceWithCanary == nil {
+		return nil
+	}
+
+	if _, err := r.reconcileServiceComponent(paddlesvc, serviceWithCanary); err != nil {
+		return err
+	} else {
+		// TODO: Modify status
+		// paddlesvc.Status.PropagateStatus(status)
+	}
+
+	// if _, err := r.reconcileServiceComponent(paddlesvc, service); err != nil {
+	// 	return err
+	// } else {
+	// 	// TODO: Modify status
+	// 	// paddlesvc.Status.PropagateStatus(status)
+	// }
 
 	return nil
 }
@@ -108,6 +116,18 @@ func (r *ServiceReconciler) finalizeService(serviceName, namespace string) error
 	}
 	return nil
 }
+
+// func (r *ServiceReconciler) finalizeCanaryEndpoints(serviceName, namespace string) error {
+// 	existing := &knservingv1.Service{}
+// 	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: serviceName, Namespace: namespace}, existing); err != nil {
+// 		if !errors.IsNotFound(err) {
+// 			return err
+// 		}
+// 	} else {
+// 		log.Info("Deleting canary endpoint", "namespace", namespace, "name", constants.CanaryServiceName(serviceName))
+// 	}
+// 	return nil
+// }
 
 func (r *ServiceReconciler) reconcileServiceComponent(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service) (*knservingv1.ServiceStatus, error) {
 	// Set Paddlesvc as owner of desired service

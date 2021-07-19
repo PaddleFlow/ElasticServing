@@ -44,7 +44,7 @@ type PaddleServiceSpec struct {
 	Canary *EndpointSpec `json:"canary,omitempty"`
 	// CanaryTrafficPercent defines the percentage of traffic going to canary PaddleService endpoints
 	// +optional
-	CanaryTrafficPercent int `json:"canaryTrafficPercent,omitempty"`
+	CanaryTrafficPercent *int `json:"canaryTrafficPercent,omitempty"`
 	// +optional
 	Service ServiceSpec `json:"service,omitempty"`
 }

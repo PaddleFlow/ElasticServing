@@ -77,25 +77,17 @@ func TestCreateVirtualService(t *testing.T) {
 			},
 			ObjectMeta: metav1.ObjectMeta{Name: serviceName, Namespace: namespace},
 			Spec: istiov1alpha3.VirtualService{
-				Hosts:    []string{service + ".paddleservice-system.example.com"},
+				Hosts:    []string{host},
 				Gateways: []string{istioGateway},
 				Http: []*istiov1alpha3.HTTPRoute{
 					{
 						Match: nil,
 						Route: []*istiov1alpha3.HTTPRouteDestination{
 							{
-								Headers: &istiov1alpha3.Headers{
-									Request: &istiov1alpha3.Headers_HeaderOperations{
-										Set: map[string]string{
-											"Host": service + ".paddleservice-system.example.com",
-										},
-									},
-								},
 								Destination: &istiov1alpha3.Destination{
-									Host: host,
+									Host: serviceName,
 									Port: nil,
 								},
-								Weight: 100,
 							},
 						},
 						Rewrite: nil,

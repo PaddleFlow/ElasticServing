@@ -81,6 +81,32 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 		arg,
 	}
 
+	revisionName := constants.DefaultServiceName(serviceName)
+	if isCanary {
+		revisionName = constants.CanaryServiceName(serviceName)
+	}
+
+	traffic := []knservingv1.TrafficTarget{}
+	if isCanary {
+		canaryTrafficPercent := 50
+		if paddlesvc.Spec.CanaryTrafficPercent != nil {
+			canaryTrafficPercent = *paddlesvc.Spec.CanaryTrafficPercent
+		}
+
+		defaultPercent := int64(100 - canaryTrafficPercent)
+		canaryPercent := int64(canaryTrafficPercent)
+		defaultTraffic := knservingv1.TrafficTarget{
+			RevisionName: constants.DefaultServiceName(serviceName),
+			Percent:      &defaultPercent,
+		}
+		canaryTraffic := knservingv1.TrafficTarget{
+			RevisionName: constants.CanaryServiceName(serviceName),
+			Percent:      &canaryPercent,
+		}
+		traffic = append(traffic, defaultTraffic)
+		traffic = append(traffic, canaryTraffic)
+	}
+
 	service := &knservingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
@@ -91,9 +117,9 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 			ConfigurationSpec: knservingv1.ConfigurationSpec{
 				Template: knservingv1.RevisionTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
+						Name: revisionName,
 						Labels: map[string]string{
 							"PaddleService": paddlesvc.Name,
-							"app":           serviceName,
 						},
 						Annotations: annotations,
 					},
@@ -144,6 +170,9 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 				},
 			},
 		},
+	}
+	if isCanary {
+		service.Spec.Traffic = traffic
 	}
 	return service, nil
 }

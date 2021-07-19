@@ -128,6 +128,11 @@ func (in *PaddleServiceSpec) DeepCopyInto(out *PaddleServiceSpec) {
 		*out = new(EndpointSpec)
 		**out = **in
 	}
+	if in.CanaryTrafficPercent != nil {
+		in, out := &in.CanaryTrafficPercent, &out.CanaryTrafficPercent
+		*out = new(int)
+		**out = **in
+	}
 	in.Service.DeepCopyInto(&out.Service)
 }
 
