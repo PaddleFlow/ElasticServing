@@ -50,7 +50,7 @@ func NewServiceReconciler(client client.Client, scheme *runtime.Scheme, paddlesv
 
 func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService) error {
 	var service *knservingv1.Service
-	// var serviceWithCanary *knservingv1.Service
+	var serviceWithCanary *knservingv1.Service
 	var err error
 	serviceName := paddlesvc.Name
 	service, err = r.serviceBuilder.CreateService(serviceName, paddlesvc, false)
@@ -74,15 +74,15 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		// paddlesvc.Status.PropagateStatus(status)
 	}
 
-	service, err = r.serviceBuilder.CreateService(serviceName, paddlesvc, true)
+	serviceWithCanary, err = r.serviceBuilder.CreateService(serviceName, paddlesvc, true)
 	if err != nil {
 		return err
 	}
-	if service == nil {
+	if serviceWithCanary == nil {
 		return nil
 	}
 
-	if _, err := r.reconcileCanaryService(paddlesvc, service); err != nil {
+	if _, err := r.reconcileCanaryService(paddlesvc, serviceWithCanary); err != nil {
 		return err
 	} else {
 		// TODO: Modify status
@@ -170,6 +170,7 @@ func (r *ServiceReconciler) reconcileDefaultService(paddlesvc *elasticservingv1.
 }
 
 func (r *ServiceReconciler) reconcileCanaryService(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service) (*knservingv1.ServiceStatus, error) {
+	log.Info("IN", "IN", desired)
 	// Set Paddlesvc as owner of desired service
 	if err := controllerutil.SetControllerReference(paddlesvc, desired, r.scheme); err != nil {
 		return nil, err
@@ -188,6 +189,7 @@ func (r *ServiceReconciler) reconcileCanaryService(paddlesvc *elasticservingv1.P
 				return &desired.Status, err
 			}
 
+			log.Info("LALALALALALAL", "Desired.Spec", desired.Spec)
 			existing.Spec = desired.Spec
 
 			err = r.client.Update(context.TODO(), existing)
@@ -196,8 +198,8 @@ func (r *ServiceReconciler) reconcileCanaryService(paddlesvc *elasticservingv1.P
 				return nil, err
 			}
 
-			r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
 			log.Info("At canary stage", "existing", existing)
+			return &existing.Status, nil
 		}
 		return nil, err
 	}

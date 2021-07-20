@@ -6,6 +6,7 @@ import (
 
 	"ElasticServing/pkg/constants"
 
+	"github.com/prometheus/common/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,9 +40,9 @@ func NewServiceBuilder(paddlesvc *elasticservingv1.PaddleService) *ServiceBuilde
 		}
 	} else {
 		canaryEndpointConfig := &EndpointConfig{}
-		canaryEndpointConfig.Image = paddlesvc.Spec.Default.ContainerImage + ":" + paddlesvc.Spec.Default.Tag
-		canaryEndpointConfig.Port = paddlesvc.Spec.Default.Port
-		canaryEndpointConfig.Argument = paddlesvc.Spec.Default.Argument
+		canaryEndpointConfig.Image = paddlesvc.Spec.Canary.ContainerImage + ":" + paddlesvc.Spec.Canary.Tag
+		canaryEndpointConfig.Port = paddlesvc.Spec.Canary.Port
+		canaryEndpointConfig.Argument = paddlesvc.Spec.Canary.Argument
 		return &ServiceBuilder{
 			defaultEndpointConfig: defaultEndpointConfig,
 			canaryEndpointConfig:  canaryEndpointConfig,
@@ -56,11 +57,13 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 
 	if isCanary && r.canaryEndpointConfig == nil {
 		return nil, nil
-	} else if isCanary && r.canaryEndpointConfig != nil {
+	} else if isCanary {
 		arg = r.canaryEndpointConfig.Argument
 		containerImage = r.canaryEndpointConfig.Image
 		containerPort = r.canaryEndpointConfig.Port
 	}
+
+	log.Info("ISCANARY", "isCanary", isCanary, "containerImage", containerImage)
 
 	metadata := paddlesvc.ObjectMeta
 	paddlesvcSpec := paddlesvc.Spec
