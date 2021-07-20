@@ -172,9 +172,91 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 		},
 	}
 	if isCanary {
-		service.Spec.Traffic = traffic
+		service.Spec.RouteSpec.Traffic = traffic
 	}
 	return service, nil
+}
+
+func (r *ServiceBuilder) CreateRevision(serviceName string, paddlesvc *elasticservingv1.PaddleService, isCanary bool) (*knservingv1.Revision, error) {
+	arg := r.defaultEndpointConfig.Argument
+	containerImage := r.defaultEndpointConfig.Image
+	containerPort := r.defaultEndpointConfig.Port
+	if isCanary {
+		arg = r.canaryEndpointConfig.Argument
+		containerImage = r.canaryEndpointConfig.Image
+		containerPort = r.canaryEndpointConfig.Port
+	}
+	metadata := paddlesvc.ObjectMeta
+	paddlesvcSpec := paddlesvc.Spec
+	resources, err := r.buildResources(metadata, paddlesvcSpec)
+	if err != nil {
+		return nil, err
+	}
+
+	annotations, err := r.buildAnnotations(metadata, paddlesvcSpec)
+	if err != nil {
+		return nil, err
+	}
+	concurrency := int64(paddlesvcSpec.Service.Target)
+
+	command := []string{"/bin/bash", "-c"}
+	args := []string{
+		arg,
+	}
+	revision := knservingv1.Revision{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        serviceName,
+			Namespace:   paddlesvc.Namespace,
+			Labels:      paddlesvc.Labels,
+			Annotations: annotations,
+		},
+		Spec: knservingv1.RevisionSpec{
+			TimeoutSeconds:       &constants.PaddleServiceDefaultTimeout,
+			ContainerConcurrency: &concurrency,
+			PodSpec: core.PodSpec{
+				Containers: []core.Container{
+					{
+						ImagePullPolicy: core.PullAlways,
+						Name:            paddlesvc.Spec.RuntimeVersion,
+						Image:           containerImage,
+						Ports: []core.ContainerPort{
+							{ContainerPort: containerPort,
+								Name:     constants.PaddleServiceDefaultPodName,
+								Protocol: core.ProtocolTCP,
+							},
+						},
+						Command: command,
+						Args:    args,
+						ReadinessProbe: &core.Probe{
+							SuccessThreshold:    constants.SuccessThreshold,
+							InitialDelaySeconds: constants.ReadinessInitialDelaySeconds,
+							TimeoutSeconds:      constants.ReadinessTimeoutSeconds,
+							FailureThreshold:    constants.ReadinessFailureThreshold,
+							PeriodSeconds:       constants.ReadinessPeriodSeconds,
+							Handler: core.Handler{
+								TCPSocket: &core.TCPSocketAction{
+									Port: intstr.FromInt(0),
+								},
+							},
+						},
+						// LivenessProbe: &core.Probe{
+						// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+						// 	FailureThreshold:    constants.LivenessFailureThreshold,
+						// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
+						// 	Handler: core.Handler{
+						// 		TCPSocket: &core.TCPSocketAction{
+						// 			Port: intstr.FromInt(0),
+						// 		},
+						// 	},
+						// },
+						Resources: resources,
+					},
+				},
+			},
+		},
+	}
+
+	return &revision, nil
 }
 
 func (r *ServiceBuilder) buildAnnotations(metadata metav1.ObjectMeta, paddlesvcSpec elasticservingv1.PaddleServiceSpec) (map[string]string, error) {
@@ -244,7 +326,6 @@ func (r *ServiceBuilder) buildAnnotations(metadata metav1.ObjectMeta, paddlesvcS
 	}
 
 	return annotations, nil
-
 }
 
 func (r *ServiceBuilder) buildResources(metadata metav1.ObjectMeta, paddlesvcSpec elasticservingv1.PaddleServiceSpec) (core.ResourceRequirements, error) {
