@@ -236,10 +236,6 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 		return &desired.Status, err
 	}
 
-	log.Info("HIHIHIHIHIHI", "HIHIHIHIHI", existing.Spec.RouteSpec)
-	log.Info("22222HIHIHIH", "HIHIHIHIHI", desired.Spec.RouteSpec)
-	log.Info("hahhahaha", "hahahah", knativeServiceTrafficSemanticEquals(desired, existing))
-
 	if knativeRevisionSemanticEquals(desiredRevision, existingRevision) &&
 		knativeServiceTrafficSemanticEquals(desired, existing) {
 		log.Info("No differences on revision found")
