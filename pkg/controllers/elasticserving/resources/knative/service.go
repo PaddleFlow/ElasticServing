@@ -180,6 +180,30 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 	return service, nil
 }
 
+func (r *ServiceBuilder) AddTrafficRoute(serviceName string, paddlesvc *elasticservingv1.PaddleService, service *knservingv1.Service) {
+	traffic := []knservingv1.TrafficTarget{}
+
+	canaryTrafficPercent := 50
+	if paddlesvc.Spec.CanaryTrafficPercent != nil {
+		canaryTrafficPercent = *paddlesvc.Spec.CanaryTrafficPercent
+	}
+
+	defaultPercent := int64(100 - canaryTrafficPercent)
+	canaryPercent := int64(canaryTrafficPercent)
+	defaultTraffic := knservingv1.TrafficTarget{
+		RevisionName: constants.DefaultServiceName(serviceName),
+		Percent:      &defaultPercent,
+	}
+	canaryTraffic := knservingv1.TrafficTarget{
+		RevisionName: constants.CanaryServiceName(serviceName),
+		Percent:      &canaryPercent,
+	}
+	traffic = append(traffic, defaultTraffic)
+	traffic = append(traffic, canaryTraffic)
+
+	service.Spec.RouteSpec.Traffic = traffic
+}
+
 func (r *ServiceBuilder) CreateRevision(serviceName string, paddlesvc *elasticservingv1.PaddleService, isCanary bool) (*knservingv1.Revision, error) {
 	arg := r.defaultEndpointConfig.Argument
 	containerImage := r.defaultEndpointConfig.Image

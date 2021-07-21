@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 
 	core "k8s.io/api/core/v1"
-
-	"ElasticServing/pkg/constants"
 )
 
 // type PaddleServiceConfig struct {
@@ -32,7 +30,7 @@ type IngressConfig struct {
 
 func NewIngressConfig(configMap *core.ConfigMap) (*IngressConfig, error) {
 	ingressConfig := IngressConfig{}
-	key := constants.Ingress
+	key := "ingress"
 
 	if err := loadFromConfigMap(configMap, &ingressConfig, key); err != nil {
 		return nil, err

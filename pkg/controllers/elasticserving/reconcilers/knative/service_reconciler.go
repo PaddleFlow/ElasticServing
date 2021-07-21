@@ -67,7 +67,7 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		return nil
 	}
 
-	if _, err := r.reconcileDefaultService(paddlesvc, service); err != nil {
+	if _, err := r.reconcileDefaultEndpoint(paddlesvc, service); err != nil {
 		return err
 	} else {
 		// TODO: Modify status
@@ -79,10 +79,13 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		return err
 	}
 	if serviceWithCanary == nil {
+		if err = r.finalizeCanaryEndpoint(serviceName, paddlesvc.Namespace, service.Spec); err != nil {
+			return err
+		}
 		return nil
 	}
 
-	if _, err := r.reconcileCanaryService(paddlesvc, serviceWithCanary); err != nil {
+	if _, err := r.reconcileCanaryEndpoint(paddlesvc, serviceWithCanary, service.Spec); err != nil {
 		return err
 	} else {
 		// TODO: Modify status
@@ -109,19 +112,35 @@ func (r *ServiceReconciler) finalizeService(serviceName, namespace string) error
 	return nil
 }
 
-// func (r *ServiceReconciler) finalizeCanaryEndpoints(serviceName, namespace string) error {
-// 	existing := &knservingv1.Service{}
-// 	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: serviceName, Namespace: namespace}, existing); err != nil {
-// 		if !errors.IsNotFound(err) {
-// 			return err
-// 		}
-// 	} else {
-// 		log.Info("Deleting canary endpoint", "namespace", namespace, "name", constants.CanaryServiceName(serviceName))
-// 	}
-// 	return nil
-// }
+func (r *ServiceReconciler) finalizeCanaryEndpoint(serviceName, namespace string, serviceSpec knservingv1.ServiceSpec) error {
+	existing := &knservingv1.Service{}
+	existingRevision := &knservingv1.Revision{}
+	canaryServiceName := constants.CanaryServiceName(serviceName)
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: canaryServiceName, Namespace: namespace}, existingRevision); err != nil {
+		if !errors.IsNotFound(err) {
+			return err
+		}
+	} else {
+		if err := r.client.Get(context.TODO(), types.NamespacedName{Name: serviceName, Namespace: namespace}, existing); err != nil {
+			return err
+		}
 
-func (r *ServiceReconciler) reconcileDefaultService(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service) (*knservingv1.ServiceStatus, error) {
+		existing.Spec = serviceSpec
+		if err := r.client.Update(context.TODO(), existing); err != nil {
+			return err
+		}
+
+		log.Info("Deleting Knative Service", "namespace", namespace, "name", serviceName)
+		if err := r.client.Delete(context.TODO(), existingRevision, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
+			if !errors.IsNotFound(err) {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (r *ServiceReconciler) reconcileDefaultEndpoint(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service) (*knservingv1.ServiceStatus, error) {
 	// Set Paddlesvc as owner of desired service
 	if err := controllerutil.SetControllerReference(paddlesvc, desired, r.scheme); err != nil {
 		return nil, err
@@ -138,38 +157,41 @@ func (r *ServiceReconciler) reconcileDefaultService(paddlesvc *elasticservingv1.
 		return nil, err
 	}
 
-	// existingRevision := &knservingv1.Revision{}
-	// err = r.client.Get(context.TODO(), types.NamespacedName{Name: constants.DefaultServiceName(desired.Name), Namespace: desired.Namespace}, existingRevision)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// desiredRevision, err := r.serviceBuilder.CreateRevision(constants.DefaultServiceName(desired.Name), paddlesvc, false)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	existingRevision := &knservingv1.Revision{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: constants.DefaultServiceName(desired.Name), Namespace: desired.Namespace}, existingRevision)
+	if err != nil {
+		return nil, err
+	}
+	desiredRevision, err := r.serviceBuilder.CreateRevision(constants.DefaultServiceName(desired.Name), paddlesvc, false)
+	if err != nil {
+		return nil, err
+	}
 
-	// if knativeRevisionSemanticEquals(desiredRevision, existingRevision) {
-	// 	log.Info("No differences on revision found")
-	// 	return &existing.Status, nil
-	// }
+	if knativeRevisionSemanticEquals(desiredRevision, existingRevision) {
+		log.Info("No differences on revision found")
+		return &existing.Status, nil
+	}
 
-	// // if !equality.Semantic.DeepDerivative(desiredRevision.ObjectMeta.Annotations, existingRevision.ObjectMeta.Annotations) {
-	// // 	existing.Spec.ConfigurationSpec.Template.Annotations = desiredRevision.ObjectMeta.Annotations
-	// // 	log.Info("Existing Spec", "Existing Spec", existing.Spec)
-	// // 	if err := r.client.Update(context.TODO(), existing); err != nil {
-	// // 		return &existing.Status, err
-	// // 	}
-	// // }
+	err = r.client.Delete(context.TODO(), existingRevision, client.PropagationPolicy(metav1.DeletePropagationBackground))
+	if err != nil {
+		return nil, err
+	}
 
-	// existingRevision.ObjectMeta.Annotations = desiredRevision.ObjectMeta.Annotations
-	// existingRevision.Spec = desiredRevision.Spec
-	// if err := r.client.Update(context.TODO(), existingRevision); err != nil {
-	// 	return &existing.Status, err
-	// }
+	existing.Spec = desired.Spec
+
+	if paddlesvc.Spec.Canary != nil {
+		r.serviceBuilder.AddTrafficRoute(paddlesvc.Name, paddlesvc, existing)
+	}
+
+	err = r.client.Update(context.TODO(), existing)
+	if err != nil {
+		return nil, err
+	}
+
 	return &existing.Status, nil
 }
 
-func (r *ServiceReconciler) reconcileCanaryService(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service) (*knservingv1.ServiceStatus, error) {
+func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service, serviceSpec knservingv1.ServiceSpec) (*knservingv1.ServiceStatus, error) {
 	log.Info("IN", "IN", desired)
 	// Set Paddlesvc as owner of desired service
 	if err := controllerutil.SetControllerReference(paddlesvc, desired, r.scheme); err != nil {
@@ -189,41 +211,51 @@ func (r *ServiceReconciler) reconcileCanaryService(paddlesvc *elasticservingv1.P
 				return &desired.Status, err
 			}
 
-			log.Info("LALALALALALAL", "Desired.Spec", desired.Spec)
 			existing.Spec = desired.Spec
 
 			err = r.client.Update(context.TODO(), existing)
-			log.Info("Existing after updated", "existing", existing)
 			if err != nil {
 				return nil, err
 			}
-
-			log.Info("At canary stage", "existing", existing)
 			return &existing.Status, nil
 		}
 		return nil, err
 	}
 
-	// err = r.client.Get(context.TODO(), types.NamespacedName{Name: constants.CanaryServiceName(desired.Name), Namespace: desired.Namespace}, existingRevision)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// desiredRevision, err := r.serviceBuilder.CreateRevision(constants.CanaryServiceName(desired.Name), paddlesvc, true)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: constants.CanaryServiceName(desired.Name), Namespace: desired.Namespace}, existingRevision)
+	if err != nil {
+		return nil, err
+	}
+	desiredRevision, err := r.serviceBuilder.CreateRevision(constants.CanaryServiceName(desired.Name), paddlesvc, true)
+	if err != nil {
+		return nil, err
+	}
 
-	// if knativeRevisionSemanticEquals(desiredRevision, existingRevision) {
-	// 	log.Info("No differences on revision found")
-	// 	return nil, nil
-	// }
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
+	if err != nil {
+		return &desired.Status, err
+	}
 
-	return nil, nil
+	if knativeRevisionSemanticEquals(desiredRevision, existingRevision) {
+		log.Info("No differences on revision found")
+		return &existing.Status, nil
+	}
+
+	if err = r.finalizeCanaryEndpoint(paddlesvc.Name, paddlesvc.Namespace, serviceSpec); err != nil {
+		return nil, err
+	}
+
+	existing.Spec = desired.Spec
+
+	err = r.client.Update(context.TODO(), existing)
+	if err != nil {
+		return nil, err
+	}
+	return &existing.Status, nil
 }
 
-func knativeServiceSemanticEquals(desired, service *knservingv1.Service) bool {
-	return equality.Semantic.DeepEqual(desired.Spec.ConfigurationSpec, service.Spec.ConfigurationSpec) &&
-		equality.Semantic.DeepEqual(desired.ObjectMeta.Labels, service.ObjectMeta.Labels)
+func knativeServiceTrafficSemanticEquals(desired, existing *knservingv1.Service) bool {
+	return equality.Semantic.DeepEqual(desired.Spec.RouteSpec, existing.Spec.RouteSpec)
 }
 
 func knativeRevisionSemanticEquals(desired, existing *knservingv1.Revision) bool {

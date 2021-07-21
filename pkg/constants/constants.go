@@ -10,11 +10,6 @@ const (
 	PaddleServiceDefaultPodName = "http1"
 )
 
-// Ingress Key
-const (
-	Ingress = "ingress"
-)
-
 // PaddleService configuration name and namespce
 const (
 	PaddleServiceConfigName      = "paddleservice-config"
