@@ -236,7 +236,12 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 		return &desired.Status, err
 	}
 
-	if knativeRevisionSemanticEquals(desiredRevision, existingRevision) {
+	log.Info("HIHIHIHIHIHI", "HIHIHIHIHI", existing.Spec.RouteSpec)
+	log.Info("22222HIHIHIH", "HIHIHIHIHI", desired.Spec.RouteSpec)
+	log.Info("hahhahaha", "hahahah", knativeServiceTrafficSemanticEquals(desired, existing))
+
+	if knativeRevisionSemanticEquals(desiredRevision, existingRevision) &&
+		knativeServiceTrafficSemanticEquals(desired, existing) {
 		log.Info("No differences on revision found")
 		return &existing.Status, nil
 	}
@@ -255,7 +260,7 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 }
 
 func knativeServiceTrafficSemanticEquals(desired, existing *knservingv1.Service) bool {
-	return equality.Semantic.DeepEqual(desired.Spec.RouteSpec, existing.Spec.RouteSpec)
+	return equality.Semantic.DeepDerivative(desired.Spec.RouteSpec, existing.Spec.RouteSpec)
 }
 
 func knativeRevisionSemanticEquals(desired, existing *knservingv1.Revision) bool {
