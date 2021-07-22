@@ -19,7 +19,7 @@ const (
 	namespace    = "test"
 	prefix       = "/paddlepaddle/test/testresource/"
 	rewrite      = "/paddlepaddle/test/testresource/"
-	service      = "testresource-service"
+	service      = "testresource-default-service"
 	host         = "*"
 	istioGateway = "paddleflow/paddleflow-gateway"
 
@@ -85,7 +85,7 @@ func TestCreateVirtualService(t *testing.T) {
 						Route: []*istiov1alpha3.HTTPRouteDestination{
 							{
 								Destination: &istiov1alpha3.Destination{
-									Host: service,
+									Host: serviceName,
 									Port: nil,
 								},
 							},

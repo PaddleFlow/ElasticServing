@@ -2,7 +2,6 @@ package knative
 
 import (
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
-	"ElasticServing/pkg/constants"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -16,7 +15,7 @@ import (
 const (
 	image                      = "hub.baidubce.com/paddlepaddle/serving:latest"
 	port                       = 9292
-	ActualTestServiceName      = "test-service"
+	ActualTestServiceName      = "paddlesvc"
 	PaddleServiceDefaultCPU    = "0.1"
 	PaddleServiceDefaultMemory = "128Mi"
 )
@@ -39,14 +38,6 @@ var (
 var defaultResources = core.ResourceList{
 	core.ResourceCPU:    resource.MustParse(PaddleServiceDefaultCPU),
 	core.ResourceMemory: resource.MustParse(PaddleServiceDefaultMemory),
-}
-
-var configMapData = map[string]string{
-	"paddleService": `{
-		"containerImage": "hub.baidubce.com/paddlepaddle/serving",
-		"version": "latest",
-        "port": 9292
-	}`,
 }
 
 var annotations = map[string]string{
@@ -73,18 +64,24 @@ var paddlesvc = elasticservingv1.PaddleService{
 			Requests: defaultResources,
 			Limits:   defaultResources,
 		},
+		Default: &elasticservingv1.EndpointSpec{
+			ContainerImage: "hub.baidubce.com/paddlepaddle/serving",
+			Tag:            "latest",
+			Port:           9292,
+		},
 	},
 }
 
 var defaultService = &knservingv1.Service{
 	ObjectMeta: metav1.ObjectMeta{
-		Name:      constants.DefaultServiceName("test"),
+		Name:      paddlesvc.Name,
 		Namespace: "default",
 	},
 	Spec: knservingv1.ServiceSpec{
 		ConfigurationSpec: knservingv1.ConfigurationSpec{
 			Template: knservingv1.RevisionTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					Name: paddlesvc.Name + "-default",
 					Labels: map[string]string{
 						"PaddleService": paddlesvc.Name,
 					},
@@ -109,22 +106,23 @@ var defaultService = &knservingv1.Service{
 									FailureThreshold:    int32(readinessFailureThreshold),
 									PeriodSeconds:       int32(readinessPeriodSeconds),
 									TimeoutSeconds:      int32(readinessTimeoutSeconds),
+									SuccessThreshold:    int32(1),
 									Handler: core.Handler{
 										TCPSocket: &core.TCPSocketAction{
 											Port: intstr.FromInt(0),
 										},
 									},
 								},
-								LivenessProbe: &core.Probe{
-									InitialDelaySeconds: int32(livenessInitialDelaySeconds),
-									FailureThreshold:    int32(livenessFailureThreshold),
-									PeriodSeconds:       int32(livenessPeriodSeconds),
-									Handler: core.Handler{
-										TCPSocket: &core.TCPSocketAction{
-											Port: intstr.FromInt(0),
-										},
-									},
-								},
+								// LivenessProbe: &core.Probe{
+								// 	InitialDelaySeconds: int32(livenessInitialDelaySeconds),
+								// 	FailureThreshold:    int32(livenessFailureThreshold),
+								// 	PeriodSeconds:       int32(livenessPeriodSeconds),
+								// 	Handler: core.Handler{
+								// 		TCPSocket: &core.TCPSocketAction{
+								// 			Port: intstr.FromInt(0),
+								// 		},
+								// 	},
+								// },
 								Resources: paddlesvc.Spec.Resources,
 							},
 						},
@@ -145,12 +143,10 @@ func TestPaddleServiceToKnativeService(t *testing.T) {
 			expectedDefault: defaultService,
 		},
 	}
-	serviceBuilder := NewServiceBuilder(&core.ConfigMap{
-		Data: configMapData,
-	})
+	serviceBuilder := NewServiceBuilder(&paddlesvc)
 
 	for name, scenario := range scenarios {
-		actualDefaultService, err := serviceBuilder.CreateService(ActualTestServiceName, &paddlesvc)
+		actualDefaultService, err := serviceBuilder.CreateService(ActualTestServiceName, &paddlesvc, false)
 		if err != nil {
 			t.Errorf("Test %q unexpected error %s", name, err.Error())
 		}

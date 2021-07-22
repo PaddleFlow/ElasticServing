@@ -6,6 +6,7 @@ import (
 
 	"ElasticServing/pkg/constants"
 
+	"github.com/prometheus/common/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,28 +17,54 @@ import (
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
 )
 
-type ServiceConfig struct {
-	Image string `json:"image,omitempty"`
-	Port  int32  `json:"port,omitempty"`
+type EndpointConfig struct {
+	Image    string `json:"image,omitempty"`
+	Port     int32  `json:"port,omitempty"`
+	Argument string `json:"arg,omitempty"`
 }
 
 type ServiceBuilder struct {
-	serviceConfig *ServiceConfig
+	defaultEndpointConfig *EndpointConfig
+	canaryEndpointConfig  *EndpointConfig
 }
 
-func NewServiceBuilder(configMap *core.ConfigMap) *ServiceBuilder {
-	serviceConfig := &ServiceConfig{}
-	paddleServiceConfig, err := elasticservingv1.NewPaddleServiceConfig(configMap)
-	if err != nil {
-		fmt.Printf("Failed to get paddle service config %s", err)
-		panic("Failed to get paddle service config")
+func NewServiceBuilder(paddlesvc *elasticservingv1.PaddleService) *ServiceBuilder {
+	defaultEndpointConfig := &EndpointConfig{}
+	defaultEndpointConfig.Image = paddlesvc.Spec.Default.ContainerImage + ":" + paddlesvc.Spec.Default.Tag
+	defaultEndpointConfig.Port = paddlesvc.Spec.Default.Port
+	defaultEndpointConfig.Argument = paddlesvc.Spec.Default.Argument
+	if paddlesvc.Spec.Canary == nil {
+		return &ServiceBuilder{
+			defaultEndpointConfig: defaultEndpointConfig,
+			canaryEndpointConfig:  nil,
+		}
+	} else {
+		canaryEndpointConfig := &EndpointConfig{}
+		canaryEndpointConfig.Image = paddlesvc.Spec.Canary.ContainerImage + ":" + paddlesvc.Spec.Canary.Tag
+		canaryEndpointConfig.Port = paddlesvc.Spec.Canary.Port
+		canaryEndpointConfig.Argument = paddlesvc.Spec.Canary.Argument
+		return &ServiceBuilder{
+			defaultEndpointConfig: defaultEndpointConfig,
+			canaryEndpointConfig:  canaryEndpointConfig,
+		}
 	}
-	serviceConfig.Image = paddleServiceConfig.ContainerImage + ":" + paddleServiceConfig.Version
-	serviceConfig.Port = paddleServiceConfig.Port
-	return &ServiceBuilder{serviceConfig: serviceConfig}
 }
 
-func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticservingv1.PaddleService) (*knservingv1.Service, error) {
+func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticservingv1.PaddleService, isCanary bool) (*knservingv1.Service, error) {
+	arg := r.defaultEndpointConfig.Argument
+	containerImage := r.defaultEndpointConfig.Image
+	containerPort := r.defaultEndpointConfig.Port
+
+	if isCanary && r.canaryEndpointConfig == nil {
+		return nil, nil
+	} else if isCanary {
+		arg = r.canaryEndpointConfig.Argument
+		containerImage = r.canaryEndpointConfig.Image
+		containerPort = r.canaryEndpointConfig.Port
+	}
+
+	log.Info("ISCANARY", "isCanary", isCanary, "containerImage", containerImage)
+
 	metadata := paddlesvc.ObjectMeta
 	paddlesvcSpec := paddlesvc.Spec
 
@@ -54,7 +81,33 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 
 	command := []string{"/bin/bash", "-c"}
 	args := []string{
-		paddlesvc.Spec.Argument,
+		arg,
+	}
+
+	revisionName := constants.DefaultServiceName(serviceName)
+	if isCanary {
+		revisionName = constants.CanaryServiceName(serviceName)
+	}
+
+	traffic := []knservingv1.TrafficTarget{}
+	if isCanary {
+		canaryTrafficPercent := 50
+		if paddlesvc.Spec.CanaryTrafficPercent != nil {
+			canaryTrafficPercent = *paddlesvc.Spec.CanaryTrafficPercent
+		}
+
+		defaultPercent := int64(100 - canaryTrafficPercent)
+		canaryPercent := int64(canaryTrafficPercent)
+		defaultTraffic := knservingv1.TrafficTarget{
+			RevisionName: constants.DefaultServiceName(serviceName),
+			Percent:      &defaultPercent,
+		}
+		canaryTraffic := knservingv1.TrafficTarget{
+			RevisionName: constants.CanaryServiceName(serviceName),
+			Percent:      &canaryPercent,
+		}
+		traffic = append(traffic, defaultTraffic)
+		traffic = append(traffic, canaryTraffic)
 	}
 
 	service := &knservingv1.Service{
@@ -67,6 +120,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 			ConfigurationSpec: knservingv1.ConfigurationSpec{
 				Template: knservingv1.RevisionTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
+						Name: revisionName,
 						Labels: map[string]string{
 							"PaddleService": paddlesvc.Name,
 						},
@@ -80,9 +134,9 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 								{
 									ImagePullPolicy: core.PullAlways,
 									Name:            paddlesvc.Spec.RuntimeVersion,
-									Image:           r.serviceConfig.Image,
+									Image:           containerImage,
 									Ports: []core.ContainerPort{
-										{ContainerPort: r.serviceConfig.Port,
+										{ContainerPort: containerPort,
 											Name:     constants.PaddleServiceDefaultPodName,
 											Protocol: core.ProtocolTCP,
 										},
@@ -90,26 +144,27 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 									Command: command,
 									Args:    args,
 									ReadinessProbe: &core.Probe{
+										SuccessThreshold:    constants.SuccessThreshold,
 										InitialDelaySeconds: constants.ReadinessInitialDelaySeconds,
+										TimeoutSeconds:      constants.ReadinessTimeoutSeconds,
 										FailureThreshold:    constants.ReadinessFailureThreshold,
 										PeriodSeconds:       constants.ReadinessPeriodSeconds,
-										TimeoutSeconds:      constants.ReadinessTimeoutSeconds,
 										Handler: core.Handler{
 											TCPSocket: &core.TCPSocketAction{
 												Port: intstr.FromInt(0),
 											},
 										},
 									},
-									LivenessProbe: &core.Probe{
-										InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
-										FailureThreshold:    constants.LivenessFailureThreshold,
-										PeriodSeconds:       constants.LivenessPeriodSeconds,
-										Handler: core.Handler{
-											TCPSocket: &core.TCPSocketAction{
-												Port: intstr.FromInt(0),
-											},
-										},
-									},
+									// LivenessProbe: &core.Probe{
+									// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+									// 	FailureThreshold:    constants.LivenessFailureThreshold,
+									// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
+									// 	Handler: core.Handler{
+									// 		TCPSocket: &core.TCPSocketAction{
+									// 			Port: intstr.FromInt(0),
+									// 		},
+									// 	},
+									// },
 									Resources: resources,
 								},
 							},
@@ -119,7 +174,116 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 			},
 		},
 	}
+	if isCanary {
+		service.Spec.RouteSpec.Traffic = traffic
+	}
 	return service, nil
+}
+
+func (r *ServiceBuilder) AddTrafficRoute(serviceName string, paddlesvc *elasticservingv1.PaddleService, service *knservingv1.Service) {
+	traffic := []knservingv1.TrafficTarget{}
+
+	canaryTrafficPercent := 50
+	if paddlesvc.Spec.CanaryTrafficPercent != nil {
+		canaryTrafficPercent = *paddlesvc.Spec.CanaryTrafficPercent
+	}
+
+	defaultPercent := int64(100 - canaryTrafficPercent)
+	canaryPercent := int64(canaryTrafficPercent)
+	defaultTraffic := knservingv1.TrafficTarget{
+		RevisionName: constants.DefaultServiceName(serviceName),
+		Percent:      &defaultPercent,
+	}
+	canaryTraffic := knservingv1.TrafficTarget{
+		RevisionName: constants.CanaryServiceName(serviceName),
+		Percent:      &canaryPercent,
+	}
+	traffic = append(traffic, defaultTraffic)
+	traffic = append(traffic, canaryTraffic)
+
+	service.Spec.RouteSpec.Traffic = traffic
+}
+
+func (r *ServiceBuilder) CreateRevision(serviceName string, paddlesvc *elasticservingv1.PaddleService, isCanary bool) (*knservingv1.Revision, error) {
+	arg := r.defaultEndpointConfig.Argument
+	containerImage := r.defaultEndpointConfig.Image
+	containerPort := r.defaultEndpointConfig.Port
+	if isCanary {
+		arg = r.canaryEndpointConfig.Argument
+		containerImage = r.canaryEndpointConfig.Image
+		containerPort = r.canaryEndpointConfig.Port
+	}
+	metadata := paddlesvc.ObjectMeta
+	paddlesvcSpec := paddlesvc.Spec
+	resources, err := r.buildResources(metadata, paddlesvcSpec)
+	if err != nil {
+		return nil, err
+	}
+
+	annotations, err := r.buildAnnotations(metadata, paddlesvcSpec)
+	if err != nil {
+		return nil, err
+	}
+	concurrency := int64(paddlesvcSpec.Service.Target)
+
+	command := []string{"/bin/bash", "-c"}
+	args := []string{
+		arg,
+	}
+	revision := knservingv1.Revision{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        serviceName,
+			Namespace:   paddlesvc.Namespace,
+			Labels:      paddlesvc.Labels,
+			Annotations: annotations,
+		},
+		Spec: knservingv1.RevisionSpec{
+			TimeoutSeconds:       &constants.PaddleServiceDefaultTimeout,
+			ContainerConcurrency: &concurrency,
+			PodSpec: core.PodSpec{
+				Containers: []core.Container{
+					{
+						ImagePullPolicy: core.PullAlways,
+						Name:            paddlesvc.Spec.RuntimeVersion,
+						Image:           containerImage,
+						Ports: []core.ContainerPort{
+							{ContainerPort: containerPort,
+								Name:     constants.PaddleServiceDefaultPodName,
+								Protocol: core.ProtocolTCP,
+							},
+						},
+						Command: command,
+						Args:    args,
+						ReadinessProbe: &core.Probe{
+							SuccessThreshold:    constants.SuccessThreshold,
+							InitialDelaySeconds: constants.ReadinessInitialDelaySeconds,
+							TimeoutSeconds:      constants.ReadinessTimeoutSeconds,
+							FailureThreshold:    constants.ReadinessFailureThreshold,
+							PeriodSeconds:       constants.ReadinessPeriodSeconds,
+							Handler: core.Handler{
+								TCPSocket: &core.TCPSocketAction{
+									Port: intstr.FromInt(0),
+								},
+							},
+						},
+						// LivenessProbe: &core.Probe{
+						// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+						// 	FailureThreshold:    constants.LivenessFailureThreshold,
+						// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
+						// 	Handler: core.Handler{
+						// 		TCPSocket: &core.TCPSocketAction{
+						// 			Port: intstr.FromInt(0),
+						// 		},
+						// 	},
+						// },
+						Resources: resources,
+					},
+				},
+			},
+		},
+	}
+
+	return &revision, nil
 }
 
 func (r *ServiceBuilder) buildAnnotations(metadata metav1.ObjectMeta, paddlesvcSpec elasticservingv1.PaddleServiceSpec) (map[string]string, error) {
@@ -189,7 +353,6 @@ func (r *ServiceBuilder) buildAnnotations(metadata metav1.ObjectMeta, paddlesvcS
 	}
 
 	return annotations, nil
-
 }
 
 func (r *ServiceBuilder) buildResources(metadata metav1.ObjectMeta, paddlesvcSpec elasticservingv1.PaddleServiceSpec) (core.ResourceRequirements, error) {

@@ -10,11 +10,6 @@ const (
 	PaddleServiceDefaultPodName = "http1"
 )
 
-// Ingress Key
-const (
-	Ingress = "ingress"
-)
-
 // PaddleService configuration name and namespce
 const (
 	PaddleServiceConfigName      = "paddleservice-config"
@@ -42,6 +37,7 @@ var (
 	ReadinessFailureThreshold    int32 = 3
 	ReadinessPeriodSeconds       int32 = 10
 	ReadinessTimeoutSeconds      int32 = 180
+	SuccessThreshold             int32 = 1
 	LivenessInitialDelaySeconds  int32 = 60
 	LivenessFailureThreshold     int32 = 3
 	LivenessPeriodSeconds        int32 = 10
@@ -63,5 +59,9 @@ var (
 )
 
 func DefaultServiceName(name string) string {
-	return name + "-service"
+	return name + "-default"
+}
+
+func CanaryServiceName(name string) string {
+	return name + "-canary"
 }

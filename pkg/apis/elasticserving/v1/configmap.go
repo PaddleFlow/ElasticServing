@@ -4,26 +4,24 @@ import (
 	"encoding/json"
 
 	core "k8s.io/api/core/v1"
-
-	"ElasticServing/pkg/constants"
 )
 
-type PaddleServiceConfig struct {
-	ContainerImage string `json:"containerImage"`
-	Version        string `json:"version"`
-	Port           int32  `json:"port"`
-}
+// type PaddleServiceConfig struct {
+// 	ContainerImage string `json:"containerImage"`
+// 	Tag            string `json:"tag"`
+// 	Port           int32  `json:"port"`
+// }
 
-func NewPaddleServiceConfig(configMap *core.ConfigMap) (*PaddleServiceConfig, error) {
-	paddleServiceConfig := PaddleServiceConfig{}
-	key := constants.PaddleService
+// func NewPaddleServiceConfig(configMap *core.ConfigMap) (*PaddleServiceConfig, error) {
+// 	paddleServiceConfig := PaddleServiceConfig{}
+// 	key := constants.PaddleService
 
-	if err := loadFromConfigMap(configMap, &paddleServiceConfig, key); err != nil {
-		return nil, err
-	}
+// 	if err := loadFromConfigMap(configMap, &paddleServiceConfig, key); err != nil {
+// 		return nil, err
+// 	}
 
-	return &paddleServiceConfig, nil
-}
+// 	return &paddleServiceConfig, nil
+// }
 
 type IngressConfig struct {
 	IngressGateway     string `json:"ingressGateway"`
@@ -32,7 +30,7 @@ type IngressConfig struct {
 
 func NewIngressConfig(configMap *core.ConfigMap) (*IngressConfig, error) {
 	ingressConfig := IngressConfig{}
-	key := constants.Ingress
+	key := "ingress"
 
 	if err := loadFromConfigMap(configMap, &ingressConfig, key); err != nil {
 		return nil, err

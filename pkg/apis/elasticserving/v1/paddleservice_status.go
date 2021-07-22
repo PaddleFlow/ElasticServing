@@ -60,6 +60,9 @@ func (ss *PaddleServiceStatus) PropagateStatus(serviceStatus *knservingv1.Servic
 	if ss.Default == nil {
 		ss.Default = &statusSpec
 	}
+	if serviceStatus == nil {
+		return
+	}
 	statusSpec.Name = serviceStatus.LatestCreatedRevisionName
 	serviceCondition := serviceStatus.GetCondition(knservingv1.ServiceConditionReady)
 

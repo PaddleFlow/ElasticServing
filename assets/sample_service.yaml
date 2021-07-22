@@ -1,6 +1,8 @@
 apiVersion: v1
 kind: Namespace
 metadata:
+  labels:
+    istio-injection: enabled
   name: paddleservice-system
 ---
 apiVersion: v1
@@ -9,12 +11,6 @@ data:
     {
         "ingressGateway" : "istio-ingressgateway",
         "ingressServiceName" : "istio-ingressgateway.istio-system.svc.cluster.local"
-    }
-  paddleService: |-
-    {
-        "containerImage": "jinmionhaobaidu/pdservinglac",
-        "version": "latest",
-        "port": 9292
     }
 kind: ConfigMap
 metadata:
@@ -27,8 +23,19 @@ metadata:
   name: paddleservice-sample
   namespace: paddleservice-system
 spec:
-  arg: python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir
-    9292
+  canary:
+    arg: python3 Serving/python/examples/lac/lac_web_service_canary.py lac_model/
+      lac_workdir 9292
+    containerImage: jinmionhaobaidu/pdservinglaccanary
+    port: 9292
+    tag: latest
+  canaryTrafficPercent: 50
+  default:
+    arg: python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir
+      9292
+    containerImage: jinmionhaobaidu/pdservinglac
+    port: 9292
+    tag: latest
   deploymentName: paddleservice
   runtimeVersion: paddleserving
   service:

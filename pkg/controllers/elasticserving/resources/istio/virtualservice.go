@@ -2,7 +2,6 @@ package istio
 
 import (
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
-	"ElasticServing/pkg/constants"
 	"fmt"
 
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
@@ -41,12 +40,12 @@ func NewVirtualServiceBuilder(configMap *core.ConfigMap) *VirtualServiceBuilder 
 
 func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1.PaddleService) *v1alpha3.VirtualService {
 
-	service := constants.DefaultServiceName(paddlesvc.Name)
+	serviceName := paddlesvc.Name
 
 	istioGateway := r.ingressConfig.IngressGateway
 	host := r.ingressConfig.IngressServiceName
 
-	vs := v1alpha3.VirtualService{
+	vs := &v1alpha3.VirtualService{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1alpha3.SchemeGroupVersion.String(),
 			Kind:       "VirtualService",
@@ -60,12 +59,13 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 		Spec: istiov1alpha3.VirtualService{
 			Hosts:    []string{host},
 			Gateways: []string{istioGateway},
+
 			Http: []*istiov1alpha3.HTTPRoute{
 				{
 					Route: []*istiov1alpha3.HTTPRouteDestination{
 						{
 							Destination: &istiov1alpha3.Destination{
-								Host: service,
+								Host: serviceName,
 							},
 						},
 					},
@@ -73,6 +73,5 @@ func (r *VirtualServiceBuilder) CreateVirtualService(paddlesvc *elasticservingv1
 			},
 		},
 	}
-
-	return &vs
+	return vs
 }

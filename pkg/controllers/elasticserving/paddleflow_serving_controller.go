@@ -20,17 +20,13 @@ import (
 	"context"
 
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
-	"ElasticServing/pkg/controllers/elasticserving/reconcilers/istio"
 	"ElasticServing/pkg/controllers/elasticserving/reconcilers/knative"
-
-	"ElasticServing/pkg/constants"
 
 	"github.com/go-logr/logr"
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -60,6 +56,7 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 
 	// Load the PaddleService by name
 	var paddlesvc elasticservingv1.PaddleService
+	log.Info("First", "First", paddlesvc)
 	if err := r.Get(ctx, req.NamespacedName, &paddlesvc); err != nil {
 		log.Error(err, "unable to fetch PaddleService")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
@@ -70,23 +67,23 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 
 	log.Info("Successfully fetching paddlesvc")
 
-	// Get ConfigMap
-	configMap := &core.ConfigMap{}
-	if err := r.Get(ctx, types.NamespacedName{Name: constants.PaddleServiceConfigName, Namespace: constants.PaddleServiceConfigNamespace}, configMap); err != nil {
-		log.Error(err, "Failed to find ConfigMap", "name", constants.PaddleServiceConfigName, "namespace", constants.PaddleServiceConfigNamespace)
-		// Error reading the object - requeue the request.
-		return ctrl.Result{}, err
-	}
+	// // Get ConfigMap
+	// configMap := &core.ConfigMap{}
+	// if err := r.Get(ctx, types.NamespacedName{Name: constants.PaddleServiceConfigName, Namespace: constants.PaddleServiceConfigNamespace}, configMap); err != nil {
+	// 	log.Error(err, "Failed to find ConfigMap", "name", constants.PaddleServiceConfigName, "namespace", constants.PaddleServiceConfigNamespace)
+	// 	// Error reading the object - requeue the request.
+	// 	return ctrl.Result{}, err
+	// }
 
-	istioReconciler := istio.NewVirtualServiceReconciler(r.Client, r.Scheme, configMap)
+	// istioReconciler := istio.NewVirtualServiceReconciler(r.Client, r.Scheme, configMap)
 
-	if err := istioReconciler.Reconcile(&paddlesvc); err != nil {
-		r.Log.Error(err, "Failed to finish istio reconcile")
-		r.Recorder.Eventf(&paddlesvc, core.EventTypeWarning, "InternalError", err.Error())
-		return reconcile.Result{}, err
-	}
+	// if err := istioReconciler.Reconcile(&paddlesvc); err != nil {
+	// 	r.Log.Error(err, "Failed to finish istio reconcile")
+	// 	r.Recorder.Eventf(&paddlesvc, core.EventTypeWarning, "InternalError", err.Error())
+	// 	return reconcile.Result{}, err
+	// }
 
-	serviceReconciler := knative.NewServiceReconciler(r.Client, r.Scheme, configMap)
+	serviceReconciler := knative.NewServiceReconciler(r.Client, r.Scheme, &paddlesvc)
 
 	if err := serviceReconciler.Reconcile(&paddlesvc); err != nil {
 		r.Log.Error(err, "Failed to finish knative reconcile")
@@ -95,6 +92,7 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	}
 
 	// Update status
+	log.Info("Last", "Last", paddlesvc)
 	if err := r.Status().Update(ctx, &paddlesvc); err != nil {
 		r.Recorder.Eventf(&paddlesvc, core.EventTypeWarning, "InternalError", err.Error())
 		return ctrl.Result{}, err

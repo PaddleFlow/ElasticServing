@@ -62,11 +62,11 @@ func (r *VirtualServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleS
 		return err
 	}
 	log.Info("Existing Virtual Service created successfully")
+	log.Info(existingVs.Spec.String())
 
 	if err = r.CompAndCopyVs(desiredVs, existingVs); err != nil {
 		return err
 	}
-
 	return nil
 }
 

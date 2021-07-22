@@ -36,8 +36,40 @@ spec:
           type: object
         spec:
           properties:
-            arg:
-              type: string
+            canary:
+              properties:
+                arg:
+                  type: string
+                containerImage:
+                  type: string
+                port:
+                  format: int32
+                  type: integer
+                tag:
+                  type: string
+              required:
+              - containerImage
+              - port
+              - tag
+              type: object
+            canaryTrafficPercent:
+              type: integer
+            default:
+              properties:
+                arg:
+                  type: string
+                containerImage:
+                  type: string
+                port:
+                  format: int32
+                  type: integer
+                tag:
+                  type: string
+              required:
+              - containerImage
+              - port
+              - tag
+              type: object
             deploymentName:
               maxLength: 64
               type: string
@@ -91,6 +123,7 @@ spec:
                   type: string
               type: object
           required:
+          - default
           - deploymentName
           type: object
         status:
@@ -320,6 +353,26 @@ rules:
   - create
   - get
   - list
+- apiGroups:
+  - serving.knative.dev
+  resources:
+  - revisions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - serving.knative.dev
+  resources:
+  - revisions/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - serving.knative.dev
   resources:
