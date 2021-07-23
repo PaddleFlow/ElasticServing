@@ -56,7 +56,7 @@ minikube service --url istio-ingressgateway -n istio-system
 kubectl get ksvc paddle-sample-service -n paddleservice-system
 
 # Start to send data to the server. <IP-address> is what has been got in the first or the second command.
-curl -H "Host: paddleservice-sample-service.paddleservice-system.example.com" -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://<IP-address>/lac/prediction
+curl -H "Host: paddleservice-sample.paddleservice-system.example.com" -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://<IP-address>/lac/prediction
 
 ```
 
