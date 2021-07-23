@@ -2,6 +2,7 @@ package knative
 
 import (
 	elasticservingv1 "ElasticServing/pkg/apis/elasticserving/v1"
+	"ElasticServing/pkg/constants"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -13,8 +14,9 @@ import (
 )
 
 const (
-	image                      = "hub.baidubce.com/paddlepaddle/serving:latest"
+	image                      = "hub.baidubce.com/paddlepaddle/serving"
 	port                       = 9292
+	tag                        = "latest"
 	ActualTestServiceName      = "paddlesvc"
 	PaddleServiceDefaultCPU    = "0.1"
 	PaddleServiceDefaultMemory = "128Mi"
@@ -42,9 +44,9 @@ var defaultResources = core.ResourceList{
 
 var annotations = map[string]string{
 	"autoscaling.knative.dev/class":                       "kpa.autoscaling.knative.dev",
-	"autoscaling.knative.dev/maxScale":                    "10",
+	"autoscaling.knative.dev/maxScale":                    "0",
 	"autoscaling.knative.dev/metric":                      "concurrency",
-	"autoscaling.knative.dev/minScale":                    "1",
+	"autoscaling.knative.dev/minScale":                    "0",
 	"autoscaling.knative.dev/panicThresholdPercentage":    "200",
 	"autoscaling.knative.dev/panicWindowPercentage":       "10",
 	"autoscaling.knative.dev/target":                      "100",
@@ -65,9 +67,9 @@ var paddlesvc = elasticservingv1.PaddleService{
 			Limits:   defaultResources,
 		},
 		Default: &elasticservingv1.EndpointSpec{
-			ContainerImage: "hub.baidubce.com/paddlepaddle/serving",
-			Tag:            "latest",
-			Port:           9292,
+			ContainerImage: image,
+			Tag:            tag,
+			Port:           port,
 		},
 	},
 }
@@ -95,7 +97,7 @@ var defaultService = &knservingv1.Service{
 							{
 								ImagePullPolicy: core.PullAlways,
 								Name:            paddlesvc.Spec.RuntimeVersion,
-								Image:           image,
+								Image:           image + ":" + tag,
 								Ports: []core.ContainerPort{
 									{ContainerPort: port, Name: "http1", Protocol: "TCP"},
 								},
@@ -138,7 +140,7 @@ func TestPaddleServiceToKnativeService(t *testing.T) {
 		paddleService   elasticservingv1.PaddleService
 		expectedDefault *knservingv1.Service
 	}{
-		"Test1": {
+		"Default Test": {
 			paddleService:   paddlesvc,
 			expectedDefault: defaultService,
 		},
@@ -151,6 +153,82 @@ func TestPaddleServiceToKnativeService(t *testing.T) {
 			t.Errorf("Test %q unexpected error %s", name, err.Error())
 		}
 		if diff := cmp.Diff(scenario.expectedDefault, actualDefaultService); diff != "" {
+			t.Errorf("Test %q unexpected canary service (-want +got): %v", name, diff)
+		}
+	}
+}
+
+var defaultEndpoint = &knservingv1.Revision{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:        paddlesvc.Name,
+		Namespace:   paddlesvc.Namespace,
+		Labels:      paddlesvc.Labels,
+		Annotations: annotations,
+	},
+	Spec: knservingv1.RevisionSpec{
+		TimeoutSeconds:       &constants.PaddleServiceDefaultTimeout,
+		ContainerConcurrency: &containerConcurrency,
+		PodSpec: core.PodSpec{
+			Containers: []core.Container{
+				{
+					ImagePullPolicy: core.PullAlways,
+					Name:            paddlesvc.Spec.RuntimeVersion,
+					Image:           image + ":" + tag,
+					Ports: []core.ContainerPort{
+						{ContainerPort: port,
+							Name:     constants.PaddleServiceDefaultPodName,
+							Protocol: core.ProtocolTCP,
+						},
+					},
+					Command: command,
+					Args:    args,
+					ReadinessProbe: &core.Probe{
+						SuccessThreshold:    constants.SuccessThreshold,
+						InitialDelaySeconds: constants.ReadinessInitialDelaySeconds,
+						TimeoutSeconds:      constants.ReadinessTimeoutSeconds,
+						FailureThreshold:    constants.ReadinessFailureThreshold,
+						PeriodSeconds:       constants.ReadinessPeriodSeconds,
+						Handler: core.Handler{
+							TCPSocket: &core.TCPSocketAction{
+								Port: intstr.FromInt(0),
+							},
+						},
+					},
+					// LivenessProbe: &core.Probe{
+					// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+					// 	FailureThreshold:    constants.LivenessFailureThreshold,
+					// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
+					// 	Handler: core.Handler{
+					// 		TCPSocket: &core.TCPSocketAction{
+					// 			Port: intstr.FromInt(0),
+					// 		},
+					// 	},
+					// },
+					Resources: paddlesvc.Spec.Resources,
+				},
+			},
+		},
+	},
+}
+
+func TestPaddleEndpointToKnativeRevision(t *testing.T) {
+	scenarios := map[string]struct {
+		paddleService    elasticservingv1.PaddleService
+		expectedRevision *knservingv1.Revision
+	}{
+		"Default Test": {
+			paddleService:    paddlesvc,
+			expectedRevision: defaultEndpoint,
+		},
+	}
+	serviceBuilder := NewServiceBuilder(&paddlesvc)
+
+	for name, scenario := range scenarios {
+		actualDefaultEndpoint, err := serviceBuilder.CreateRevision(ActualTestServiceName, &paddlesvc, false)
+		if err != nil {
+			t.Errorf("Test %q unexpected error %s", name, err.Error())
+		}
+		if diff := cmp.Diff(scenario.expectedRevision, actualDefaultEndpoint); diff != "" {
 			t.Errorf("Test %q unexpected canary service (-want +got): %v", name, diff)
 		}
 	}

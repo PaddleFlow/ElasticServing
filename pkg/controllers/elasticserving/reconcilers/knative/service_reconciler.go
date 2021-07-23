@@ -71,6 +71,7 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		return err
 	} else {
 		// TODO: Modify status
+		log.Info("STATUSSSS", "STATUSSSS", paddlesvc.Status)
 		// paddlesvc.Status.PropagateStatus(status)
 	}
 
@@ -226,6 +227,7 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 	if err != nil {
 		return nil, err
 	}
+
 	desiredRevision, err := r.serviceBuilder.CreateRevision(constants.CanaryServiceName(desired.Name), paddlesvc, true)
 	if err != nil {
 		return nil, err
@@ -242,7 +244,8 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 		return &existing.Status, nil
 	}
 
-	if err = r.finalizeCanaryEndpoint(paddlesvc.Name, paddlesvc.Namespace, serviceSpec); err != nil {
+	err = r.finalizeCanaryEndpoint(paddlesvc.Name, paddlesvc.Namespace, serviceSpec)
+	if err != nil {
 		return nil, err
 	}
 

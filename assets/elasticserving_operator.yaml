@@ -137,6 +137,11 @@ spec:
               additionalProperties:
                 type: string
               type: object
+            canary:
+              properties:
+                name:
+                  type: string
+              type: object
             conditions:
               items:
                 properties:
@@ -159,8 +164,6 @@ spec:
               type: array
             default:
               properties:
-                host:
-                  type: string
                 name:
                   type: string
               type: object

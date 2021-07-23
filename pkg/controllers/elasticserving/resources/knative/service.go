@@ -89,27 +89,6 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 		revisionName = constants.CanaryServiceName(serviceName)
 	}
 
-	traffic := []knservingv1.TrafficTarget{}
-	if isCanary {
-		canaryTrafficPercent := 50
-		if paddlesvc.Spec.CanaryTrafficPercent != nil {
-			canaryTrafficPercent = *paddlesvc.Spec.CanaryTrafficPercent
-		}
-
-		defaultPercent := int64(100 - canaryTrafficPercent)
-		canaryPercent := int64(canaryTrafficPercent)
-		defaultTraffic := knservingv1.TrafficTarget{
-			RevisionName: constants.DefaultServiceName(serviceName),
-			Percent:      &defaultPercent,
-		}
-		canaryTraffic := knservingv1.TrafficTarget{
-			RevisionName: constants.CanaryServiceName(serviceName),
-			Percent:      &canaryPercent,
-		}
-		traffic = append(traffic, defaultTraffic)
-		traffic = append(traffic, canaryTraffic)
-	}
-
 	service := &knservingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
@@ -175,15 +154,13 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 		},
 	}
 	if isCanary {
-		service.Spec.RouteSpec.Traffic = traffic
+		r.AddTrafficRoute(serviceName, paddlesvc, service)
 	}
 	return service, nil
 }
 
 func (r *ServiceBuilder) AddTrafficRoute(serviceName string, paddlesvc *elasticservingv1.PaddleService, service *knservingv1.Service) {
-	traffic := []knservingv1.TrafficTarget{}
-
-	canaryTrafficPercent := 50
+	canaryTrafficPercent := constants.PaddleServivceDefaultTrafficPercents
 	if paddlesvc.Spec.CanaryTrafficPercent != nil {
 		canaryTrafficPercent = *paddlesvc.Spec.CanaryTrafficPercent
 	}
@@ -198,8 +175,10 @@ func (r *ServiceBuilder) AddTrafficRoute(serviceName string, paddlesvc *elastics
 		RevisionName: constants.CanaryServiceName(serviceName),
 		Percent:      &canaryPercent,
 	}
-	traffic = append(traffic, defaultTraffic)
-	traffic = append(traffic, canaryTraffic)
+	traffic := []knservingv1.TrafficTarget{
+		defaultTraffic,
+		canaryTraffic,
+	}
 
 	service.Spec.RouteSpec.Traffic = traffic
 }

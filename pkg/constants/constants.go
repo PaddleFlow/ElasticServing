@@ -20,8 +20,8 @@ const (
 var (
 	PaddleServiceDefaultCPU                               = "0.2"
 	PaddleServiceDefaultMemory                            = "512Mi"
-	PaddleServiceDefaultMinScale                          = 1  // 0 if scale-to-zero is desired
-	PaddleServiceDefaultMaxScale                          = 10 // 0 means limitless
+	PaddleServiceDefaultMinScale                          = 0 // 0 if scale-to-zero is desired
+	PaddleServiceDefaultMaxScale                          = 0 // 0 means limitless
 	PaddleServiceDefaultTimeout                     int64 = 300
 	PaddleServiceDefaultScalingClass                      = autoscaling.KPA // kpa or hpa
 	PaddleServiceDefaultScalingMetric                     = "concurrency"   // concurrency, rps or cpu (hpa required)
@@ -30,6 +30,7 @@ var (
 	PaddleServiceDefaultWindow                            = "60s"
 	PaddleServiceDefaultPanicWindow                       = "10" // percentage of StableWindow
 	PaddleServiceDefaultPanicThreshold                    = "200"
+	PaddleServivceDefaultTrafficPercents                  = 50
 )
 
 var (

@@ -17,7 +17,6 @@ limitations under the License.
 package v1
 
 import (
-	v1 "k8s.io/api/core/v1"
 	"knative.dev/pkg/apis"
 	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -58,25 +57,25 @@ func (ss *PaddleServiceStatus) GetCondition(t apis.ConditionType) *apis.Conditio
 }
 
 func (ss *PaddleServiceStatus) PropagateStatus(serviceStatus *knservingv1.ServiceStatus) {
-	conditionType := DefaultEndpointReady
+	// conditionType := DefaultEndpointReady
 	statusSpec := StatusConfigurationSpec{}
-	if ss.Default == nil {
-		ss.Default = &statusSpec
-	}
-	if serviceStatus == nil {
-		return
-	}
-	statusSpec.Name = serviceStatus.LatestCreatedRevisionName
-	serviceCondition := serviceStatus.GetCondition(knservingv1.ServiceConditionReady)
+	// if ss.Default == nil {
+	// 	ss.Default = &statusSpec
+	// }
+	// if serviceStatus == nil {
+	// 	return
+	// }
+	// statusSpec.Name = serviceStatus.LatestCreatedRevisionName
+	// serviceCondition := serviceStatus.GetCondition(knservingv1.ServiceConditionReady)
 
-	switch {
-	case serviceCondition == nil:
-	case serviceCondition.Status == v1.ConditionUnknown:
-		conditionSet.Manage(ss).MarkUnknown(conditionType, serviceCondition.Reason, serviceCondition.Message)
-	case serviceCondition.Status == v1.ConditionTrue:
-		conditionSet.Manage(ss).MarkTrue(conditionType)
-	case serviceCondition.Status == v1.ConditionFalse:
-		conditionSet.Manage(ss).MarkFalse(conditionType, serviceCondition.Reason, serviceCondition.Message)
-	}
+	// switch {
+	// case serviceCondition == nil:
+	// case serviceCondition.Status == v1.ConditionUnknown:
+	// 	conditionSet.Manage(ss).MarkUnknown(conditionType, serviceCondition.Reason, serviceCondition.Message)
+	// case serviceCondition.Status == v1.ConditionTrue:
+	// 	conditionSet.Manage(ss).MarkTrue(conditionType)
+	// case serviceCondition.Status == v1.ConditionFalse:
+	// 	conditionSet.Manage(ss).MarkFalse(conditionType, serviceCondition.Reason, serviceCondition.Message)
+	// }
 	*ss.Default = statusSpec
 }
