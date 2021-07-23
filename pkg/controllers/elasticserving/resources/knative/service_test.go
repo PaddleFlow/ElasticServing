@@ -35,6 +35,8 @@ var (
 	livenessInitialDelaySeconds  = 60
 	livenessFailureThreshold     = 3
 	livenessPeriodSeconds        = 10
+
+	defaultTrafficPercent int64 = 50
 )
 
 var defaultResources = core.ResourceList{
@@ -67,6 +69,31 @@ var paddlesvc = elasticservingv1.PaddleService{
 			Limits:   defaultResources,
 		},
 		Default: &elasticservingv1.EndpointSpec{
+			ContainerImage: image,
+			Tag:            tag,
+			Port:           port,
+		},
+	},
+}
+
+var paddlesvcCanaryWithSameConfig = elasticservingv1.PaddleService{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      "paddlesvc",
+		Namespace: "default",
+	},
+	Spec: elasticservingv1.PaddleServiceSpec{
+		DeploymentName: "depl-test",
+		RuntimeVersion: "latest",
+		Resources: core.ResourceRequirements{
+			Requests: defaultResources,
+			Limits:   defaultResources,
+		},
+		Default: &elasticservingv1.EndpointSpec{
+			ContainerImage: image,
+			Tag:            tag,
+			Port:           port,
+		},
+		Canary: &elasticservingv1.EndpointSpec{
 			ContainerImage: image,
 			Tag:            tag,
 			Port:           port,
@@ -135,7 +162,80 @@ var defaultService = &knservingv1.Service{
 	},
 }
 
-func TestPaddleServiceToKnativeService(t *testing.T) {
+var canaryServiceWithSameConfig = &knservingv1.Service{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      paddlesvc.Name,
+		Namespace: "default",
+	},
+	Spec: knservingv1.ServiceSpec{
+		ConfigurationSpec: knservingv1.ConfigurationSpec{
+			Template: knservingv1.RevisionTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: paddlesvc.Name + "-canary",
+					Labels: map[string]string{
+						"PaddleService": paddlesvc.Name,
+					},
+					Annotations: annotations,
+				},
+				Spec: knservingv1.RevisionSpec{
+					ContainerConcurrency: &containerConcurrency,
+					TimeoutSeconds:       &timeoutSeconds,
+					PodSpec: core.PodSpec{
+						Containers: []core.Container{
+							{
+								ImagePullPolicy: core.PullAlways,
+								Name:            paddlesvc.Spec.RuntimeVersion,
+								Image:           image + ":" + tag,
+								Ports: []core.ContainerPort{
+									{ContainerPort: port, Name: "http1", Protocol: "TCP"},
+								},
+								Command: command,
+								Args:    args,
+								ReadinessProbe: &core.Probe{
+									InitialDelaySeconds: int32(readinessInitialDelaySeconds),
+									FailureThreshold:    int32(readinessFailureThreshold),
+									PeriodSeconds:       int32(readinessPeriodSeconds),
+									TimeoutSeconds:      int32(readinessTimeoutSeconds),
+									SuccessThreshold:    int32(1),
+									Handler: core.Handler{
+										TCPSocket: &core.TCPSocketAction{
+											Port: intstr.FromInt(0),
+										},
+									},
+								},
+								// LivenessProbe: &core.Probe{
+								// 	InitialDelaySeconds: int32(livenessInitialDelaySeconds),
+								// 	FailureThreshold:    int32(livenessFailureThreshold),
+								// 	PeriodSeconds:       int32(livenessPeriodSeconds),
+								// 	Handler: core.Handler{
+								// 		TCPSocket: &core.TCPSocketAction{
+								// 			Port: intstr.FromInt(0),
+								// 		},
+								// 	},
+								// },
+								Resources: paddlesvc.Spec.Resources,
+							},
+						},
+					},
+				},
+			},
+		},
+		RouteSpec: knservingv1.RouteSpec{
+			Traffic: []knservingv1.TrafficTarget{
+				{
+					RevisionName: paddlesvc.Name + "-default",
+					Percent:      &defaultTrafficPercent,
+				},
+				{
+					RevisionName: paddlesvc.Name + "-canary",
+					Percent:      &defaultTrafficPercent,
+				},
+			},
+		},
+	},
+}
+
+func TestDefaultPaddleServiceToKnativeService(t *testing.T) {
 	scenarios := map[string]struct {
 		paddleService   elasticservingv1.PaddleService
 		expectedDefault *knservingv1.Service
@@ -153,6 +253,29 @@ func TestPaddleServiceToKnativeService(t *testing.T) {
 			t.Errorf("Test %q unexpected error %s", name, err.Error())
 		}
 		if diff := cmp.Diff(scenario.expectedDefault, actualDefaultService); diff != "" {
+			t.Errorf("Test %q unexpected canary service (-want +got): %v", name, diff)
+		}
+	}
+}
+
+func TestCanaryPaddleServiceToKnativeService(t *testing.T) {
+	scenarios := map[string]struct {
+		paddleService  elasticservingv1.PaddleService
+		expectedCanary *knservingv1.Service
+	}{
+		"Canary Test": {
+			paddleService:  paddlesvc,
+			expectedCanary: canaryServiceWithSameConfig,
+		},
+	}
+	serviceBuilder := NewServiceBuilder(&paddlesvcCanaryWithSameConfig)
+
+	for name, scenario := range scenarios {
+		actualCanaryService, err := serviceBuilder.CreateService(ActualTestServiceName, &paddlesvc, true)
+		if err != nil {
+			t.Errorf("Test %q unexpected error %s", name, err.Error())
+		}
+		if diff := cmp.Diff(scenario.expectedCanary, actualCanaryService); diff != "" {
 			t.Errorf("Test %q unexpected canary service (-want +got): %v", name, diff)
 		}
 	}
