@@ -26,15 +26,18 @@ import (
 const (
 	// RoutesReady is set when network configuration has completed.
 	RoutesReady apis.ConditionType = "RoutesReady"
-	// DefaultPaddleServiceReady is set when default PaddleService has reported readiness.
-	DefaultPaddleServiceReady apis.ConditionType = "DefaultPaddleServiceReady"
+	// DefaultEndpointReady is set when default PaddleService Endpoint has reported readiness.
+	DefaultEndpointReady apis.ConditionType = "DefaultEndpointReady"
+	// CanaryEndpointReady is set when canary PaddleService Endpoint has reported readiness.
+	CanaryEndpointReady apis.ConditionType = "CanaryEndpointReady"
 )
 
 // PaddleService Ready condition is depending on default PaddleService and route readiness condition
 // canary readiness condition only present when canary is used and currently does
 // not affect PaddleService readiness condition.
 var conditionSet = apis.NewLivingConditionSet(
-	DefaultPaddleServiceReady,
+	DefaultEndpointReady,
+	CanaryEndpointReady,
 	RoutesReady,
 )
 
@@ -55,7 +58,7 @@ func (ss *PaddleServiceStatus) GetCondition(t apis.ConditionType) *apis.Conditio
 }
 
 func (ss *PaddleServiceStatus) PropagateStatus(serviceStatus *knservingv1.ServiceStatus) {
-	conditionType := DefaultPaddleServiceReady
+	conditionType := DefaultEndpointReady
 	statusSpec := StatusConfigurationSpec{}
 	if ss.Default == nil {
 		ss.Default = &statusSpec
@@ -70,15 +73,10 @@ func (ss *PaddleServiceStatus) PropagateStatus(serviceStatus *knservingv1.Servic
 	case serviceCondition == nil:
 	case serviceCondition.Status == v1.ConditionUnknown:
 		conditionSet.Manage(ss).MarkUnknown(conditionType, serviceCondition.Reason, serviceCondition.Message)
-		statusSpec.Hostname = ""
 	case serviceCondition.Status == v1.ConditionTrue:
 		conditionSet.Manage(ss).MarkTrue(conditionType)
-		if serviceStatus.URL != nil {
-			statusSpec.Hostname = serviceStatus.URL.Host
-		}
 	case serviceCondition.Status == v1.ConditionFalse:
 		conditionSet.Manage(ss).MarkFalse(conditionType, serviceCondition.Reason, serviceCondition.Message)
-		statusSpec.Hostname = ""
 	}
 	*ss.Default = statusSpec
 }
