@@ -64,7 +64,12 @@ curl -H "Host: paddleservice-sample-service.paddleservice-system.example.com" -H
 
 ``` bash
 # The expected output should be 
+
+default: 
 {"result":[{"word_seg":"\u6211|\u7231|\u5317\u4eac|\u5929\u5b89\u95e8"}]}
+
+canary:
+{"result":[{"word_seg":"\u6211-\u7231-\u5317\u4eac-\u5929\u5b89\u95e8"}]}
 ```
 
 ## Installation
