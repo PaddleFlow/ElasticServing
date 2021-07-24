@@ -193,7 +193,6 @@ func (r *ServiceReconciler) reconcileDefaultEndpoint(paddlesvc *elasticservingv1
 }
 
 func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service, serviceSpec knservingv1.ServiceSpec) (*knservingv1.ServiceStatus, error) {
-	log.Info("IN", "IN", desired)
 	// Set Paddlesvc as owner of desired service
 	if err := controllerutil.SetControllerReference(paddlesvc, desired, r.scheme); err != nil {
 		return nil, err
@@ -212,6 +211,9 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 				return &desired.Status, err
 			}
 
+			if knativeSpecSemanticEquals(desired.Spec, existing.Spec) {
+				return &existing.Status, nil
+			}
 			existing.Spec = desired.Spec
 
 			err = r.client.Update(context.TODO(), existing)
@@ -256,6 +258,10 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 		return nil, err
 	}
 	return &existing.Status, nil
+}
+
+func knativeSpecSemanticEquals(desired, existing interface{}) bool {
+	return equality.Semantic.DeepDerivative(desired, existing)
 }
 
 func knativeServiceTrafficSemanticEquals(desired, existing *knservingv1.Service) bool {

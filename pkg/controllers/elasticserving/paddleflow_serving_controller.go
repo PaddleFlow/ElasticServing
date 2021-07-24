@@ -55,7 +55,6 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 
 	// Load the PaddleService by name
 	var paddlesvc elasticservingv1.PaddleService
-	log.Info("First", "First", paddlesvc)
 	if err := r.Get(ctx, req.NamespacedName, &paddlesvc); err != nil {
 		log.Error(err, "unable to fetch PaddleService")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
@@ -75,7 +74,6 @@ func (r *PaddleServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	}
 
 	// Update status
-	log.Info("Last", "Last", paddlesvc)
 	if err := r.Status().Update(ctx, &paddlesvc); err != nil {
 		r.Recorder.Eventf(&paddlesvc, core.EventTypeWarning, "InternalError", err.Error())
 		return ctrl.Result{}, err
