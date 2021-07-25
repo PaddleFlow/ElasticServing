@@ -21,7 +21,7 @@ spec:
   default:
     arg: python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir
       9292
-    containerImage: jinmionhaobaidu/pdservinglac
+    containerImage: jinmionhaobaidu/pdservinglaccanary
     port: 9292
     tag: latest
   deploymentName: paddleservice

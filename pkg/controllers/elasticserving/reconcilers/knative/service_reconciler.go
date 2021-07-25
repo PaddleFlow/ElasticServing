@@ -67,12 +67,12 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		return nil
 	}
 
-	if _, err := r.reconcileDefaultEndpoint(paddlesvc, service); err != nil {
+	if status, err := r.reconcileDefaultEndpoint(paddlesvc, service); err != nil {
 		return err
 	} else {
 		// TODO: Modify status
-		log.Info("STATUSSSS", "STATUSSSS", paddlesvc.Status)
-		// paddlesvc.Status.PropagateStatus(status)
+		log.Info("STATUSTAT", "STATUS", status)
+		paddlesvc.Status.PropagateStatus(status)
 	}
 
 	serviceWithCanary, err = r.serviceBuilder.CreateService(serviceName, paddlesvc, true)
@@ -153,7 +153,16 @@ func (r *ServiceReconciler) reconcileDefaultEndpoint(paddlesvc *elasticservingv1
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Knative Service", "namespace", desired.Namespace, "name", desired.Name)
-			return &desired.Status, r.client.Create(context.TODO(), desired)
+			err = r.client.Create(context.TODO(), desired)
+			if err != nil {
+				return nil, err
+			}
+
+			err = r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
+			if err != nil {
+				return nil, err
+			}
+			return &existing.Status, nil
 		}
 		return nil, err
 	}

@@ -6,7 +6,6 @@ import (
 
 	"ElasticServing/pkg/constants"
 
-	"github.com/prometheus/common/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -62,8 +61,6 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 		containerImage = r.canaryEndpointConfig.Image
 		containerPort = r.canaryEndpointConfig.Port
 	}
-
-	log.Info("ISCANARY", "isCanary", isCanary, "containerImage", containerImage)
 
 	metadata := paddlesvc.ObjectMeta
 	paddlesvcSpec := paddlesvc.Spec
@@ -161,6 +158,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 
 func (r *ServiceBuilder) AddTrafficRoute(serviceName string, paddlesvc *elasticservingv1.PaddleService, service *knservingv1.Service) {
 	canaryTrafficPercent := constants.PaddleServivceDefaultTrafficPercents
+	setLastRevision := false
 	if paddlesvc.Spec.CanaryTrafficPercent != nil {
 		canaryTrafficPercent = *paddlesvc.Spec.CanaryTrafficPercent
 	}
@@ -168,12 +166,14 @@ func (r *ServiceBuilder) AddTrafficRoute(serviceName string, paddlesvc *elastics
 	defaultPercent := int64(100 - canaryTrafficPercent)
 	canaryPercent := int64(canaryTrafficPercent)
 	defaultTraffic := knservingv1.TrafficTarget{
-		RevisionName: constants.DefaultServiceName(serviceName),
-		Percent:      &defaultPercent,
+		RevisionName:   constants.DefaultServiceName(serviceName),
+		LatestRevision: &setLastRevision,
+		Percent:        &defaultPercent,
 	}
 	canaryTraffic := knservingv1.TrafficTarget{
-		RevisionName: constants.CanaryServiceName(serviceName),
-		Percent:      &canaryPercent,
+		RevisionName:   constants.CanaryServiceName(serviceName),
+		LatestRevision: &setLastRevision,
+		Percent:        &canaryPercent,
 	}
 	traffic := []knservingv1.TrafficTarget{
 		defaultTraffic,
