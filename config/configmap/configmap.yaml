@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  namespace: paddleservice-system
+data:
+  # paddleService: |-
+  #   {
+  #       "containerImage": "jinmionhaobaidu/pdservinglac",
+  #       "tag": "latest",
+  #       "port": 9292
+  #   }
+  ingress: |-
+    {
+        "ingressGateway" : "istio-ingressgateway",
+        "ingressServiceName" : "istio-ingressgateway.istio-system.svc.cluster.local"
+    }

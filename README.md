@@ -56,7 +56,7 @@ minikube service --url istio-ingressgateway -n istio-system
 kubectl get ksvc paddle-sample-service -n paddleservice-system
 
 # Start to send data to the server. <IP-address> is what has been got in the first or the second command.
-curl -H "Host: paddleservice-sample.paddleservice-system.example.com" -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://<IP-address>/lac/prediction
+curl -H "Host: paddleservice-sample-service.paddleservice-system.example.com" -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://<IP-address>/lac/prediction
 
 ```
 
@@ -64,12 +64,7 @@ curl -H "Host: paddleservice-sample.paddleservice-system.example.com" -H "Conten
 
 ``` bash
 # The expected output should be 
-
-default: 
 {"result":[{"word_seg":"\u6211|\u7231|\u5317\u4eac|\u5929\u5b89\u95e8"}]}
-
-canary:
-{"result":[{"word_seg":"\u6211-\u7231-\u5317\u4eac-\u5929\u5b89\u95e8"}]}
 ```
 
 ## Installation
@@ -79,14 +74,30 @@ canary:
 git clone https://github.com/PaddleFlow/ElasticServing.git
 cd ElasticServing
 
-# Install elastic serving CRD
-kubectl apply -f assets/crd.yaml
-
-# Install elastic serving controller manager
+# Install elastic serving CRD and controller manager
 kubectl apply -f assets/elasticserving_operator.yaml
 
 # Deploy paddle service
 kubectl apply -f assets/sample_service.yaml
+```
+
+### Change Paddle Serving Image 
+
+``` yaml
+paddleService: |-
+{
+"containerImage": "hub.baidubce.com/paddlepaddle/serving",
+"version": "latest",
+"port": 9292
+}
+```
+
+The sample ```config/configmap/configmap.yaml``` uses TAG ``` latest``` in row ```version```. It is used for CPU runtime version of paddle serving image. If you want to use other version like GPU version, please check out [the Image description part](https://github.com/PaddlePaddle/Serving/blob/v0.4.0/doc/DOCKER_IMAGES.md#image-description).
+
+Then run
+
+``` bash
+kubectl create -f config/configmap/configmap.yaml
 ```
 
 ### Create your own PaddleService
@@ -99,31 +110,32 @@ example.yaml
 apiVersion: elasticserving.paddlepaddle.org/v1
 kind: PaddleService
 metadata:
-  name: paddleservice-sample
-  namespace: paddleservice-system
+  name: <new-PS-name>
+  namespace: <new-PS-namespace>
 spec:
-  canary:
-    arg: python3 Serving/python/examples/lac/lac_web_service_canary.py lac_model/
-      lac_workdir 9292
-    containerImage: jinmionhaobaidu/pdservinglaccanary
-    port: 9292
-    tag: latest
-  canaryTrafficPercent: 50
-  default:
-    arg: python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir
-      9292
-    containerImage: jinmionhaobaidu/pdservinglac
-    port: 9292
-    tag: latest
-  deploymentName: paddleservice
-  runtimeVersion: paddleserving
-  service:
-    minScale: 1
+  # Add fields here
+  deploymentName: <deployment-name>
+  runtimeVersion: <runtime-version>
+  arg: <argument>
+  # (All the values below are default if omitted)
+  service: 
+    autoscalar: autoscaling.KPA
+    metric: "concurrency"
+    window: "60s"
+    panicWindow: "10"
+    panicThreshold: "200"
+    minScale: 1 
+    maxScale: 10
+    target: 100
+  resources:
+    cpu: "0.2"
+    memory: "512Mi"
 ```
 
 Execute the following command:
 
 ``` bash
+kubectl create ns <new-PS-namespace>
 kubectl apply -f /dir/to/this/yaml/example.yaml
 ```
 

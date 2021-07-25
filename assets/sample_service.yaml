@@ -5,6 +5,18 @@ metadata:
     istio-injection: enabled
   name: paddleservice-system
 ---
+apiVersion: v1
+data:
+  ingress: |-
+    {
+        "ingressGateway" : "istio-ingressgateway",
+        "ingressServiceName" : "istio-ingressgateway.istio-system.svc.cluster.local"
+    }
+kind: ConfigMap
+metadata:
+  name: paddleservice-config
+  namespace: paddleservice-system
+---
 apiVersion: elasticserving.paddlepaddle.org/v1
 kind: PaddleService
 metadata:
