@@ -4,5 +4,4 @@ namePrefix: paddleservice-
 
 bases:
 - namespace.yaml
-- ../configmap
 - ../samples
