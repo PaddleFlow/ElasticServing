@@ -67,12 +67,11 @@ func (r *ServiceReconciler) Reconcile(paddlesvc *elasticservingv1.PaddleService)
 		return nil
 	}
 
-	if status, err := r.reconcileDefaultEndpoint(paddlesvc, service); err != nil {
+	if _, err := r.reconcileDefaultEndpoint(paddlesvc, service); err != nil {
 		return err
 	} else {
 		// TODO: Modify status
-		log.Info("STATUSTAT", "STATUS", status)
-		paddlesvc.Status.PropagateStatus(status)
+		// paddlesvc.Status.PropagateStatus(status)
 	}
 
 	serviceWithCanary, err = r.serviceBuilder.CreateService(serviceName, paddlesvc, true)

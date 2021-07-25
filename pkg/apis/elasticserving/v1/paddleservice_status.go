@@ -57,13 +57,13 @@ func (ss *PaddleServiceStatus) GetCondition(t apis.ConditionType) *apis.Conditio
 }
 
 func (ss *PaddleServiceStatus) PropagateStatus(serviceStatus *knservingv1.ServiceStatus) {
+	if serviceStatus == nil {
+		return
+	}
 	// conditionType := DefaultEndpointReady
 	statusSpec := StatusConfigurationSpec{}
 	if ss.Default == nil {
 		ss.Default = &statusSpec
-	}
-	if serviceStatus == nil {
-		return
 	}
 	statusSpec.Name = serviceStatus.LatestCreatedRevisionName
 	// serviceCondition := serviceStatus.GetCondition(knservingv1.ServiceConditionReady)
@@ -75,7 +75,7 @@ func (ss *PaddleServiceStatus) PropagateStatus(serviceStatus *knservingv1.Servic
 	// case serviceCondition.Status == v1.ConditionTrue:
 	// 	conditionSet.Manage(ss).MarkTrue(conditionType)
 	// case serviceCondition.Status == v1.ConditionFalse:
-	// 	// 	conditionSet.Manage(ss).MarkFalse(conditionType, serviceCondition.Reason, serviceCondition.Message)
+	// 	conditionSet.Manage(ss).MarkFalse(conditionType, serviceCondition.Reason, serviceCondition.Message)
 	// }
 	*ss.Default = statusSpec
 }
