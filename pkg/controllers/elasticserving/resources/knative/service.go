@@ -131,16 +131,16 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 											},
 										},
 									},
-									// LivenessProbe: &core.Probe{
-									// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
-									// 	FailureThreshold:    constants.LivenessFailureThreshold,
-									// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
-									// 	Handler: core.Handler{
-									// 		TCPSocket: &core.TCPSocketAction{
-									// 			Port: intstr.FromInt(0),
-									// 		},
-									// 	},
-									// },
+									LivenessProbe: &core.Probe{
+										InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+										FailureThreshold:    constants.LivenessFailureThreshold,
+										PeriodSeconds:       constants.LivenessPeriodSeconds,
+										Handler: core.Handler{
+											TCPSocket: &core.TCPSocketAction{
+												Port: intstr.FromInt(0),
+											},
+										},
+									},
 									Resources: resources,
 								},
 							},
@@ -245,16 +245,16 @@ func (r *ServiceBuilder) CreateRevision(serviceName string, paddlesvc *elasticse
 								},
 							},
 						},
-						// LivenessProbe: &core.Probe{
-						// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
-						// 	FailureThreshold:    constants.LivenessFailureThreshold,
-						// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
-						// 	Handler: core.Handler{
-						// 		TCPSocket: &core.TCPSocketAction{
-						// 			Port: intstr.FromInt(0),
-						// 		},
-						// 	},
-						// },
+						LivenessProbe: &core.Probe{
+							InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+							FailureThreshold:    constants.LivenessFailureThreshold,
+							PeriodSeconds:       constants.LivenessPeriodSeconds,
+							Handler: core.Handler{
+								TCPSocket: &core.TCPSocketAction{
+									Port: intstr.FromInt(0),
+								},
+							},
+						},
 						Resources: resources,
 					},
 				},

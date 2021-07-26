@@ -17,9 +17,13 @@ const (
 	image                      = "hub.baidubce.com/paddlepaddle/serving"
 	port                       = 9292
 	tag                        = "latest"
-	ActualTestServiceName      = "paddlesvc"
-	PaddleServiceDefaultCPU    = "0.1"
-	PaddleServiceDefaultMemory = "128Mi"
+	actualTestServiceName      = "paddlesvc"
+	paddleServiceDefaultCPU    = "0.1"
+	paddleServiceDefaultMemory = "128Mi"
+	paddleServiceName          = "paddlesvc"
+	paddleServiceNamespace     = "default"
+	deploymentName             = "depl-test"
+	runtimeVersion             = "latest"
 )
 
 var (
@@ -37,11 +41,13 @@ var (
 	livenessPeriodSeconds        = 10
 
 	defaultTrafficPercent int64 = 50
+
+	setLastRevision bool = false
 )
 
 var defaultResources = core.ResourceList{
-	core.ResourceCPU:    resource.MustParse(PaddleServiceDefaultCPU),
-	core.ResourceMemory: resource.MustParse(PaddleServiceDefaultMemory),
+	core.ResourceCPU:    resource.MustParse(paddleServiceDefaultCPU),
+	core.ResourceMemory: resource.MustParse(paddleServiceDefaultMemory),
 }
 
 var annotations = map[string]string{
@@ -58,12 +64,12 @@ var annotations = map[string]string{
 
 var paddlesvc = elasticservingv1.PaddleService{
 	ObjectMeta: metav1.ObjectMeta{
-		Name:      "paddlesvc",
-		Namespace: "default",
+		Name:      paddleServiceName,
+		Namespace: paddleServiceNamespace,
 	},
 	Spec: elasticservingv1.PaddleServiceSpec{
-		DeploymentName: "depl-test",
-		RuntimeVersion: "latest",
+		DeploymentName: deploymentName,
+		RuntimeVersion: runtimeVersion,
 		Resources: core.ResourceRequirements{
 			Requests: defaultResources,
 			Limits:   defaultResources,
@@ -78,12 +84,12 @@ var paddlesvc = elasticservingv1.PaddleService{
 
 var paddlesvcCanaryWithSameConfig = elasticservingv1.PaddleService{
 	ObjectMeta: metav1.ObjectMeta{
-		Name:      "paddlesvc",
-		Namespace: "default",
+		Name:      paddleServiceName,
+		Namespace: paddleServiceNamespace,
 	},
 	Spec: elasticservingv1.PaddleServiceSpec{
-		DeploymentName: "depl-test",
-		RuntimeVersion: "latest",
+		DeploymentName: deploymentName,
+		RuntimeVersion: runtimeVersion,
 		Resources: core.ResourceRequirements{
 			Requests: defaultResources,
 			Limits:   defaultResources,
@@ -104,7 +110,7 @@ var paddlesvcCanaryWithSameConfig = elasticservingv1.PaddleService{
 var defaultService = &knservingv1.Service{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:      paddlesvc.Name,
-		Namespace: "default",
+		Namespace: paddleServiceNamespace,
 	},
 	Spec: knservingv1.ServiceSpec{
 		ConfigurationSpec: knservingv1.ConfigurationSpec{
@@ -142,16 +148,16 @@ var defaultService = &knservingv1.Service{
 										},
 									},
 								},
-								// LivenessProbe: &core.Probe{
-								// 	InitialDelaySeconds: int32(livenessInitialDelaySeconds),
-								// 	FailureThreshold:    int32(livenessFailureThreshold),
-								// 	PeriodSeconds:       int32(livenessPeriodSeconds),
-								// 	Handler: core.Handler{
-								// 		TCPSocket: &core.TCPSocketAction{
-								// 			Port: intstr.FromInt(0),
-								// 		},
-								// 	},
-								// },
+								LivenessProbe: &core.Probe{
+									InitialDelaySeconds: int32(livenessInitialDelaySeconds),
+									FailureThreshold:    int32(livenessFailureThreshold),
+									PeriodSeconds:       int32(livenessPeriodSeconds),
+									Handler: core.Handler{
+										TCPSocket: &core.TCPSocketAction{
+											Port: intstr.FromInt(0),
+										},
+									},
+								},
 								Resources: paddlesvc.Spec.Resources,
 							},
 						},
@@ -165,7 +171,7 @@ var defaultService = &knservingv1.Service{
 var canaryServiceWithSameConfig = &knservingv1.Service{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:      paddlesvc.Name,
-		Namespace: "default",
+		Namespace: paddleServiceNamespace,
 	},
 	Spec: knservingv1.ServiceSpec{
 		ConfigurationSpec: knservingv1.ConfigurationSpec{
@@ -203,16 +209,16 @@ var canaryServiceWithSameConfig = &knservingv1.Service{
 										},
 									},
 								},
-								// LivenessProbe: &core.Probe{
-								// 	InitialDelaySeconds: int32(livenessInitialDelaySeconds),
-								// 	FailureThreshold:    int32(livenessFailureThreshold),
-								// 	PeriodSeconds:       int32(livenessPeriodSeconds),
-								// 	Handler: core.Handler{
-								// 		TCPSocket: &core.TCPSocketAction{
-								// 			Port: intstr.FromInt(0),
-								// 		},
-								// 	},
-								// },
+								LivenessProbe: &core.Probe{
+									InitialDelaySeconds: int32(livenessInitialDelaySeconds),
+									FailureThreshold:    int32(livenessFailureThreshold),
+									PeriodSeconds:       int32(livenessPeriodSeconds),
+									Handler: core.Handler{
+										TCPSocket: &core.TCPSocketAction{
+											Port: intstr.FromInt(0),
+										},
+									},
+								},
 								Resources: paddlesvc.Spec.Resources,
 							},
 						},
@@ -223,12 +229,14 @@ var canaryServiceWithSameConfig = &knservingv1.Service{
 		RouteSpec: knservingv1.RouteSpec{
 			Traffic: []knservingv1.TrafficTarget{
 				{
-					RevisionName: paddlesvc.Name + "-default",
-					Percent:      &defaultTrafficPercent,
+					RevisionName:   paddlesvc.Name + "-default",
+					LatestRevision: &setLastRevision,
+					Percent:        &defaultTrafficPercent,
 				},
 				{
-					RevisionName: paddlesvc.Name + "-canary",
-					Percent:      &defaultTrafficPercent,
+					RevisionName:   paddlesvc.Name + "-canary",
+					LatestRevision: &setLastRevision,
+					Percent:        &defaultTrafficPercent,
 				},
 			},
 		},
@@ -248,7 +256,7 @@ func TestDefaultPaddleServiceToKnativeService(t *testing.T) {
 	serviceBuilder := NewServiceBuilder(&paddlesvc)
 
 	for name, scenario := range scenarios {
-		actualDefaultService, err := serviceBuilder.CreateService(ActualTestServiceName, &paddlesvc, false)
+		actualDefaultService, err := serviceBuilder.CreateService(actualTestServiceName, &paddlesvc, false)
 		if err != nil {
 			t.Errorf("Test %q unexpected error %s", name, err.Error())
 		}
@@ -271,7 +279,7 @@ func TestCanaryPaddleServiceToKnativeService(t *testing.T) {
 	serviceBuilder := NewServiceBuilder(&paddlesvcCanaryWithSameConfig)
 
 	for name, scenario := range scenarios {
-		actualCanaryService, err := serviceBuilder.CreateService(ActualTestServiceName, &paddlesvc, true)
+		actualCanaryService, err := serviceBuilder.CreateService(actualTestServiceName, &paddlesvc, true)
 		if err != nil {
 			t.Errorf("Test %q unexpected error %s", name, err.Error())
 		}
@@ -317,16 +325,16 @@ var defaultEndpoint = &knservingv1.Revision{
 							},
 						},
 					},
-					// LivenessProbe: &core.Probe{
-					// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
-					// 	FailureThreshold:    constants.LivenessFailureThreshold,
-					// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
-					// 	Handler: core.Handler{
-					// 		TCPSocket: &core.TCPSocketAction{
-					// 			Port: intstr.FromInt(0),
-					// 		},
-					// 	},
-					// },
+					LivenessProbe: &core.Probe{
+						InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+						FailureThreshold:    constants.LivenessFailureThreshold,
+						PeriodSeconds:       constants.LivenessPeriodSeconds,
+						Handler: core.Handler{
+							TCPSocket: &core.TCPSocketAction{
+								Port: intstr.FromInt(0),
+							},
+						},
+					},
 					Resources: paddlesvc.Spec.Resources,
 				},
 			},
@@ -347,7 +355,7 @@ func TestPaddleEndpointToKnativeRevision(t *testing.T) {
 	serviceBuilder := NewServiceBuilder(&paddlesvc)
 
 	for name, scenario := range scenarios {
-		actualDefaultEndpoint, err := serviceBuilder.CreateRevision(ActualTestServiceName, &paddlesvc, false)
+		actualDefaultEndpoint, err := serviceBuilder.CreateRevision(actualTestServiceName, &paddlesvc, false)
 		if err != nil {
 			t.Errorf("Test %q unexpected error %s", name, err.Error())
 		}
