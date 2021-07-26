@@ -91,7 +91,7 @@ kubectl apply -f assets/sample_service.yaml
 
 ### Create your own PaddleService
 
-Imitate ```config/samples/elasticserving_v1_paddle.yaml``` to create your own PaddleService.  Please follow the following format.
+After insntalling CRD ```kubectl apply -f assets/crd.yaml``` and controller manager ```kubectl apply -f assets/elasticserving_operator.yaml```, you can build your own PaddleService by applying your yaml which looks like the following one.
 
 example.yaml
 
