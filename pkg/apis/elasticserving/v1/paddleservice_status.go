@@ -17,7 +17,6 @@ limitations under the License.
 package v1
 
 import (
-	v1 "k8s.io/api/core/v1"
 	"knative.dev/pkg/apis"
 	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -26,15 +25,18 @@ import (
 const (
 	// RoutesReady is set when network configuration has completed.
 	RoutesReady apis.ConditionType = "RoutesReady"
-	// DefaultPaddleServiceReady is set when default PaddleService has reported readiness.
-	DefaultPaddleServiceReady apis.ConditionType = "DefaultPaddleServiceReady"
+	// DefaultEndpointReady is set when default PaddleService Endpoint has reported readiness.
+	DefaultEndpointReady apis.ConditionType = "DefaultEndpointReady"
+	// CanaryEndpointReady is set when canary PaddleService Endpoint has reported readiness.
+	CanaryEndpointReady apis.ConditionType = "CanaryEndpointReady"
 )
 
 // PaddleService Ready condition is depending on default PaddleService and route readiness condition
 // canary readiness condition only present when canary is used and currently does
 // not affect PaddleService readiness condition.
 var conditionSet = apis.NewLivingConditionSet(
-	DefaultPaddleServiceReady,
+	DefaultEndpointReady,
+	CanaryEndpointReady,
 	RoutesReady,
 )
 
@@ -55,30 +57,25 @@ func (ss *PaddleServiceStatus) GetCondition(t apis.ConditionType) *apis.Conditio
 }
 
 func (ss *PaddleServiceStatus) PropagateStatus(serviceStatus *knservingv1.ServiceStatus) {
-	conditionType := DefaultPaddleServiceReady
+	if serviceStatus == nil {
+		return
+	}
+	// conditionType := DefaultEndpointReady
 	statusSpec := StatusConfigurationSpec{}
 	if ss.Default == nil {
 		ss.Default = &statusSpec
 	}
-	if serviceStatus == nil {
-		return
-	}
 	statusSpec.Name = serviceStatus.LatestCreatedRevisionName
-	serviceCondition := serviceStatus.GetCondition(knservingv1.ServiceConditionReady)
+	// serviceCondition := serviceStatus.GetCondition(knservingv1.ServiceConditionReady)
 
-	switch {
-	case serviceCondition == nil:
-	case serviceCondition.Status == v1.ConditionUnknown:
-		conditionSet.Manage(ss).MarkUnknown(conditionType, serviceCondition.Reason, serviceCondition.Message)
-		statusSpec.Hostname = ""
-	case serviceCondition.Status == v1.ConditionTrue:
-		conditionSet.Manage(ss).MarkTrue(conditionType)
-		if serviceStatus.URL != nil {
-			statusSpec.Hostname = serviceStatus.URL.Host
-		}
-	case serviceCondition.Status == v1.ConditionFalse:
-		conditionSet.Manage(ss).MarkFalse(conditionType, serviceCondition.Reason, serviceCondition.Message)
-		statusSpec.Hostname = ""
-	}
+	// switch {
+	// case serviceCondition == nil:
+	// case serviceCondition.Status == v1.ConditionUnknown:
+	// 	conditionSet.Manage(ss).MarkUnknown(conditionType, "serviceCondition.Reason", "string")
+	// case serviceCondition.Status == v1.ConditionTrue:
+	// 	conditionSet.Manage(ss).MarkTrue(conditionType)
+	// case serviceCondition.Status == v1.ConditionFalse:
+	// 	conditionSet.Manage(ss).MarkFalse(conditionType, serviceCondition.Reason, serviceCondition.Message)
+	// }
 	*ss.Default = statusSpec
 }

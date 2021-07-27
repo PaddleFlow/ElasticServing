@@ -70,9 +70,6 @@ spec:
               - port
               - tag
               type: object
-            deploymentName:
-              maxLength: 64
-              type: string
             resources:
               properties:
                 limits:
@@ -124,7 +121,6 @@ spec:
               type: object
           required:
           - default
-          - deploymentName
           type: object
         status:
           properties:
@@ -136,6 +132,11 @@ spec:
             annotations:
               additionalProperties:
                 type: string
+              type: object
+            canary:
+              properties:
+                name:
+                  type: string
               type: object
             conditions:
               items:
@@ -159,8 +160,6 @@ spec:
               type: array
             default:
               properties:
-                host:
-                  type: string
                 name:
                   type: string
               type: object

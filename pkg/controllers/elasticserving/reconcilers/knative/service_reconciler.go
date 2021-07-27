@@ -130,7 +130,7 @@ func (r *ServiceReconciler) finalizeCanaryEndpoint(serviceName, namespace string
 			return err
 		}
 
-		log.Info("Deleting Knative Service", "namespace", namespace, "name", serviceName)
+		log.Info("Deleting Knative Canary Endpoint", "namespace", namespace, "name", serviceName)
 		if err := r.client.Delete(context.TODO(), existingRevision, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
 			if !errors.IsNotFound(err) {
 				return err
@@ -151,8 +151,17 @@ func (r *ServiceReconciler) reconcileDefaultEndpoint(paddlesvc *elasticservingv1
 	err := r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			log.Info("Creating Knative Service", "namespace", desired.Namespace, "name", desired.Name)
-			return &desired.Status, r.client.Create(context.TODO(), desired)
+			log.Info("Creating Knative Default Endpoint", "namespace", desired.Namespace, "name", desired.Name)
+			err = r.client.Create(context.TODO(), desired)
+			if err != nil {
+				return nil, err
+			}
+
+			err = r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
+			if err != nil {
+				return nil, err
+			}
+			return &existing.Status, nil
 		}
 		return nil, err
 	}
@@ -172,6 +181,9 @@ func (r *ServiceReconciler) reconcileDefaultEndpoint(paddlesvc *elasticservingv1
 		return &existing.Status, nil
 	}
 
+	// The update process includes two steps.
+	// 1. Delete the default endpoint(revision)
+	// 2. Update knative service whose template should be updated to desired.Spec
 	err = r.client.Delete(context.TODO(), existingRevision, client.PropagationPolicy(metav1.DeletePropagationBackground))
 	if err != nil {
 		return nil, err
@@ -192,7 +204,6 @@ func (r *ServiceReconciler) reconcileDefaultEndpoint(paddlesvc *elasticservingv1
 }
 
 func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.PaddleService, desired *knservingv1.Service, serviceSpec knservingv1.ServiceSpec) (*knservingv1.ServiceStatus, error) {
-	log.Info("IN", "IN", desired)
 	// Set Paddlesvc as owner of desired service
 	if err := controllerutil.SetControllerReference(paddlesvc, desired, r.scheme); err != nil {
 		return nil, err
@@ -211,6 +222,9 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 				return &desired.Status, err
 			}
 
+			if knativeSpecSemanticEquals(desired.Spec, existing.Spec) {
+				return &existing.Status, nil
+			}
 			existing.Spec = desired.Spec
 
 			err = r.client.Update(context.TODO(), existing)
@@ -226,6 +240,7 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 	if err != nil {
 		return nil, err
 	}
+
 	desiredRevision, err := r.serviceBuilder.CreateRevision(constants.CanaryServiceName(desired.Name), paddlesvc, true)
 	if err != nil {
 		return nil, err
@@ -242,7 +257,11 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 		return &existing.Status, nil
 	}
 
-	if err = r.finalizeCanaryEndpoint(paddlesvc.Name, paddlesvc.Namespace, serviceSpec); err != nil {
+	// The update process includes two steps.
+	// 1. Delete the canary endpoint(revision)
+	// 2. Update knative service whose template should be updated to desired.Spec
+	err = r.finalizeCanaryEndpoint(paddlesvc.Name, paddlesvc.Namespace, serviceSpec)
+	if err != nil {
 		return nil, err
 	}
 
@@ -253,6 +272,10 @@ func (r *ServiceReconciler) reconcileCanaryEndpoint(paddlesvc *elasticservingv1.
 		return nil, err
 	}
 	return &existing.Status, nil
+}
+
+func knativeSpecSemanticEquals(desired, existing interface{}) bool {
+	return equality.Semantic.DeepDerivative(desired, existing)
 }
 
 func knativeServiceTrafficSemanticEquals(desired, existing *knservingv1.Service) bool {

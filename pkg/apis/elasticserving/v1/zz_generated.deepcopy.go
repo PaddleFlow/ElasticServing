@@ -140,6 +140,11 @@ func (in *PaddleServiceStatus) DeepCopyInto(out *PaddleServiceStatus) {
 		*out = new(StatusConfigurationSpec)
 		**out = **in
 	}
+	if in.Canary != nil {
+		in, out := &in.Canary, &out.Canary
+		*out = new(StatusConfigurationSpec)
+		**out = **in
+	}
 	if in.Address != nil {
 		in, out := &in.Address, &out.Address
 		*out = new(v1beta1.Addressable)

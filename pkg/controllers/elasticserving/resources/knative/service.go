@@ -6,7 +6,6 @@ import (
 
 	"ElasticServing/pkg/constants"
 
-	"github.com/prometheus/common/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,8 +62,6 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 		containerPort = r.canaryEndpointConfig.Port
 	}
 
-	log.Info("ISCANARY", "isCanary", isCanary, "containerImage", containerImage)
-
 	metadata := paddlesvc.ObjectMeta
 	paddlesvcSpec := paddlesvc.Spec
 
@@ -87,27 +84,6 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 	revisionName := constants.DefaultServiceName(serviceName)
 	if isCanary {
 		revisionName = constants.CanaryServiceName(serviceName)
-	}
-
-	traffic := []knservingv1.TrafficTarget{}
-	if isCanary {
-		canaryTrafficPercent := 50
-		if paddlesvc.Spec.CanaryTrafficPercent != nil {
-			canaryTrafficPercent = *paddlesvc.Spec.CanaryTrafficPercent
-		}
-
-		defaultPercent := int64(100 - canaryTrafficPercent)
-		canaryPercent := int64(canaryTrafficPercent)
-		defaultTraffic := knservingv1.TrafficTarget{
-			RevisionName: constants.DefaultServiceName(serviceName),
-			Percent:      &defaultPercent,
-		}
-		canaryTraffic := knservingv1.TrafficTarget{
-			RevisionName: constants.CanaryServiceName(serviceName),
-			Percent:      &canaryPercent,
-		}
-		traffic = append(traffic, defaultTraffic)
-		traffic = append(traffic, canaryTraffic)
 	}
 
 	service := &knservingv1.Service{
@@ -155,16 +131,16 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 											},
 										},
 									},
-									// LivenessProbe: &core.Probe{
-									// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
-									// 	FailureThreshold:    constants.LivenessFailureThreshold,
-									// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
-									// 	Handler: core.Handler{
-									// 		TCPSocket: &core.TCPSocketAction{
-									// 			Port: intstr.FromInt(0),
-									// 		},
-									// 	},
-									// },
+									LivenessProbe: &core.Probe{
+										InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+										FailureThreshold:    constants.LivenessFailureThreshold,
+										PeriodSeconds:       constants.LivenessPeriodSeconds,
+										Handler: core.Handler{
+											TCPSocket: &core.TCPSocketAction{
+												Port: intstr.FromInt(0),
+											},
+										},
+									},
 									Resources: resources,
 								},
 							},
@@ -175,15 +151,14 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 		},
 	}
 	if isCanary {
-		service.Spec.RouteSpec.Traffic = traffic
+		r.AddTrafficRoute(serviceName, paddlesvc, service)
 	}
 	return service, nil
 }
 
 func (r *ServiceBuilder) AddTrafficRoute(serviceName string, paddlesvc *elasticservingv1.PaddleService, service *knservingv1.Service) {
-	traffic := []knservingv1.TrafficTarget{}
-
-	canaryTrafficPercent := 50
+	canaryTrafficPercent := constants.PaddleServivceDefaultTrafficPercents
+	setLastRevision := false
 	if paddlesvc.Spec.CanaryTrafficPercent != nil {
 		canaryTrafficPercent = *paddlesvc.Spec.CanaryTrafficPercent
 	}
@@ -191,15 +166,19 @@ func (r *ServiceBuilder) AddTrafficRoute(serviceName string, paddlesvc *elastics
 	defaultPercent := int64(100 - canaryTrafficPercent)
 	canaryPercent := int64(canaryTrafficPercent)
 	defaultTraffic := knservingv1.TrafficTarget{
-		RevisionName: constants.DefaultServiceName(serviceName),
-		Percent:      &defaultPercent,
+		RevisionName:   constants.DefaultServiceName(serviceName),
+		LatestRevision: &setLastRevision,
+		Percent:        &defaultPercent,
 	}
 	canaryTraffic := knservingv1.TrafficTarget{
-		RevisionName: constants.CanaryServiceName(serviceName),
-		Percent:      &canaryPercent,
+		RevisionName:   constants.CanaryServiceName(serviceName),
+		LatestRevision: &setLastRevision,
+		Percent:        &canaryPercent,
 	}
-	traffic = append(traffic, defaultTraffic)
-	traffic = append(traffic, canaryTraffic)
+	traffic := []knservingv1.TrafficTarget{
+		defaultTraffic,
+		canaryTraffic,
+	}
 
 	service.Spec.RouteSpec.Traffic = traffic
 }
@@ -266,16 +245,16 @@ func (r *ServiceBuilder) CreateRevision(serviceName string, paddlesvc *elasticse
 								},
 							},
 						},
-						// LivenessProbe: &core.Probe{
-						// 	InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
-						// 	FailureThreshold:    constants.LivenessFailureThreshold,
-						// 	PeriodSeconds:       constants.LivenessPeriodSeconds,
-						// 	Handler: core.Handler{
-						// 		TCPSocket: &core.TCPSocketAction{
-						// 			Port: intstr.FromInt(0),
-						// 		},
-						// 	},
-						// },
+						LivenessProbe: &core.Probe{
+							InitialDelaySeconds: constants.LivenessInitialDelaySeconds,
+							FailureThreshold:    constants.LivenessFailureThreshold,
+							PeriodSeconds:       constants.LivenessPeriodSeconds,
+							Handler: core.Handler{
+								TCPSocket: &core.TCPSocketAction{
+									Port: intstr.FromInt(0),
+								},
+							},
+						},
 						Resources: resources,
 					},
 				},

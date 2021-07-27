@@ -24,7 +24,6 @@ spec:
     containerImage: jinmionhaobaidu/pdservinglac
     port: 9292
     tag: latest
-  deploymentName: paddleservice
   runtimeVersion: paddleserving
   service:
-    minScale: 1
+    minScale: 0

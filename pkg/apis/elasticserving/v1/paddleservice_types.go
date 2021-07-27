@@ -30,8 +30,6 @@ type PaddleServiceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// +kubebuilder:validation:MaxLength=64
-	DeploymentName string `json:"deploymentName"`
 	// Version of the service
 	RuntimeVersion string `json:"runtimeVersion,omitempty"`
 	// Defaults to requests and limits of 1CPU, 2Gb MEM.
@@ -101,6 +99,8 @@ type PaddleServiceStatus struct {
 	URL string `json:"url,omitempty"`
 	// Statuses for the default endpoints of the PaddleService
 	Default *StatusConfigurationSpec `json:"default,omitempty"`
+	// Statuses for the canary endpoints of the PaddleService
+	Canary *StatusConfigurationSpec `json:"canary,omitempty"`
 	// Addressable URL for eventing
 	Address *duckv1beta1.Addressable `json:"address,omitempty"`
 
@@ -135,8 +135,6 @@ type PaddleServiceList struct {
 type StatusConfigurationSpec struct {
 	// Latest revision name that is in ready state
 	Name string `json:"name,omitempty"`
-	// Host name of the service
-	Hostname string `json:"host,omitempty"`
 }
 
 func init() {
