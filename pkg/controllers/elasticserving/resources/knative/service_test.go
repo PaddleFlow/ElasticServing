@@ -22,7 +22,6 @@ const (
 	paddleServiceDefaultMemory = "128Mi"
 	paddleServiceName          = "paddlesvc"
 	paddleServiceNamespace     = "default"
-	deploymentName             = "depl-test"
 	runtimeVersion             = "latest"
 )
 
@@ -68,7 +67,6 @@ var paddlesvc = elasticservingv1.PaddleService{
 		Namespace: paddleServiceNamespace,
 	},
 	Spec: elasticservingv1.PaddleServiceSpec{
-		DeploymentName: deploymentName,
 		RuntimeVersion: runtimeVersion,
 		Resources: core.ResourceRequirements{
 			Requests: defaultResources,
@@ -88,7 +86,6 @@ var paddlesvcCanaryWithSameConfig = elasticservingv1.PaddleService{
 		Namespace: paddleServiceNamespace,
 	},
 	Spec: elasticservingv1.PaddleServiceSpec{
-		DeploymentName: deploymentName,
 		RuntimeVersion: runtimeVersion,
 		Resources: core.ResourceRequirements{
 			Requests: defaultResources,

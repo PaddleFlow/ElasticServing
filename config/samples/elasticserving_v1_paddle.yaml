@@ -5,7 +5,6 @@ metadata:
   namespace: paddleservice-system
 spec:
   # Add fields here
-  deploymentName: paddleservice
   runtimeVersion: paddleserving
   default:
     containerImage: "jinmionhaobaidu/pdservinglac"
@@ -21,4 +20,4 @@ spec:
       python3 Serving/python/examples/lac/lac_web_service_canary.py lac_model/ lac_workdir 9292
   canaryTrafficPercent: 50
   service:
-    minScale: 1
+    minScale: 0

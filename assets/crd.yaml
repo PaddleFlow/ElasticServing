@@ -63,9 +63,6 @@ spec:
               - port
               - tag
               type: object
-            deploymentName:
-              maxLength: 64
-              type: string
             resources:
               properties:
                 limits:
@@ -117,7 +114,6 @@ spec:
               type: object
           required:
           - default
-          - deploymentName
           type: object
         status:
           properties:
