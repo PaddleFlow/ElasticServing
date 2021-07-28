@@ -21,3 +21,4 @@ spec:
   canaryTrafficPercent: 50
   service:
     minScale: 0
+    window: "10s"
