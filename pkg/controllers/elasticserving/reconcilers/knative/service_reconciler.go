@@ -156,11 +156,12 @@ func (r *ServiceReconciler) reconcileDefaultEndpoint(paddlesvc *elasticservingv1
 			if err != nil {
 				return nil, err
 			}
-
+			log.Info("Anchor 1")
 			err = r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
 			if err != nil {
 				return nil, err
 			}
+			log.Info("Anchor 2")
 			return &existing.Status, nil
 		}
 		return nil, err

@@ -12,18 +12,19 @@ metadata:
   namespace: paddleservice-system
 spec:
   canary:
-    arg: python3 Serving/python/examples/lac/lac_web_service_canary.py lac_model/
-      lac_workdir 9292
-    containerImage: jinmionhaobaidu/pdservinglaccanary
+    arg: cd Serving/python/examples/imagenet && python3 resnet50_web_service_canary.py
+      ResNet50_vd_model cpu 9292
+    containerImage: jinmionhaobaidu/resnetcanary
     port: 9292
     tag: latest
   canaryTrafficPercent: 50
   default:
-    arg: python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir
-      9292
-    containerImage: jinmionhaobaidu/pdservinglac
+    arg: cd Serving/python/examples/imagenet && python3 resnet50_web_service.py ResNet50_vd_model
+      cpu 9292
+    containerImage: jinmionhaobaidu/resnet
     port: 9292
     tag: latest
   runtimeVersion: paddleserving
   service:
     minScale: 0
+    window: 10s
