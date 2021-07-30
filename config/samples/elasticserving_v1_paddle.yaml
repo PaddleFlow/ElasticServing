@@ -7,17 +7,16 @@ spec:
   # Add fields here
   runtimeVersion: paddleserving
   default:
-    containerImage: "jinmionhaobaidu/pdservinglac"
-    tag: "latest"
+    arg: cd Serving/python/examples/imagenet && python3 resnet50_web_service.py ResNet50_vd_model cpu 9292
+    containerImage: jinmionhaobaidu/resnet
     port: 9292
-    arg:
-      python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir 9292
+    tag: latest
   canary:
-    containerImage: "jinmionhaobaidu/pdservinglaccanary"
-    tag: "latest"
+    arg: cd Serving/python/examples/imagenet && python3 resnet50_web_service_canary.py ResNet50_vd_model cpu 9292
+    containerImage: jinmionhaobaidu/resnetcanary
     port: 9292
-    arg:
-      python3 Serving/python/examples/lac/lac_web_service_canary.py lac_model/ lac_workdir 9292
+    tag: latest
   canaryTrafficPercent: 50
   service:
     minScale: 0
+    window: "10s"
