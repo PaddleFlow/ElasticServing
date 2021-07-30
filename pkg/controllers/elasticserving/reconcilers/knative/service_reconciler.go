@@ -156,12 +156,15 @@ func (r *ServiceReconciler) reconcileDefaultEndpoint(paddlesvc *elasticservingv1
 			if err != nil {
 				return nil, err
 			}
-			log.Info("Anchor 1")
-			err = r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
+			for {
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, existing)
+				if err == nil || !errors.IsNotFound(err) {
+					break
+				}
+			}
 			if err != nil {
 				return nil, err
 			}
-			log.Info("Anchor 2")
 			return &existing.Status, nil
 		}
 		return nil, err
@@ -285,5 +288,5 @@ func knativeServiceTrafficSemanticEquals(desired, existing *knservingv1.Service)
 
 func knativeRevisionSemanticEquals(desired, existing *knservingv1.Revision) bool {
 	return equality.Semantic.DeepDerivative(desired.ObjectMeta.Annotations, existing.ObjectMeta.Annotations) &&
-		equality.Semantic.DeepEqual(desired.Spec, existing.Spec)
+		equality.Semantic.DeepDerivative(desired.Spec, existing.Spec)
 }
