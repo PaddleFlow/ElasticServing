@@ -116,6 +116,13 @@ canary:
 #### Lac sample
 The related sample_service.yaml is as follows:
 ``` yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    istio-injection: enabled
+  name: paddleservice-system
+---
 apiVersion: elasticserving.paddlepaddle.org/v1
 kind: PaddleService
 metadata:
@@ -135,7 +142,6 @@ spec:
     containerImage: jinmionhaobaidu/pdservinglac
     port: 9292
     tag: latest
-  deploymentName: paddleservice
   runtimeVersion: paddleserving
   service:
     minScale: 1
@@ -182,6 +188,13 @@ After insntalling CRD ```kubectl apply -f assets/crd.yaml``` and controller mana
 example.yaml
 
 ``` yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    istio-injection: enabled
+  name: paddleservice-system
+---
 apiVersion: elasticserving.paddlepaddle.org/v1
 kind: PaddleService
 metadata:
@@ -201,7 +214,6 @@ spec:
     containerImage: jinmionhaobaidu/pdservinglac
     port: 9292
     tag: latest
-  deploymentName: paddleservice
   runtimeVersion: paddleserving
   service:
     minScale: 1
