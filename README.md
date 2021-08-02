@@ -46,21 +46,107 @@ kubectl logs <pod-name> -n paddleservice-system -c paddleserving -f
 
 ### Run Sample
 
+We use Istio as the networking layer for Knative serving. It's also fine for users to use others, i.e, Kourier, Contour and Ambassador.
+
 ``` bash
 # Find the public IP address of the gateway (make a note of the EXTERNAL-IP field in the output)
 kubectl get service istio-ingressgateway --namespace=istio-system
+# If the EXTERNAL-IP is pending, get the ip with the following command
+kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='{.items[0].status.hostIP}'
 # If you are using minikube, the public IP address of the gateway will be listed once you execute the following command (There will exist four URLs and maybe choose the second one)
 minikube service --url istio-ingressgateway -n istio-system
 
+# Get the port of the gateway
+kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}'
+
 # Find the URL of the application. The expected result may be http://paddle-sample-service.paddleservice-system.example.com
 kubectl get ksvc paddle-sample-service -n paddleservice-system
-
-# Start to send data to the server. <IP-address> is what has been got in the first or the second command.
-curl -H "Host: paddleservice-sample.paddleservice-system.example.com" -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://<IP-address>/lac/prediction
-
 ```
 
-#### Expected Result
+#### Resnet_50_vd sample
+The related sample_service.yaml is as follows:
+``` yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    istio-injection: enabled
+  name: paddleservice-system
+---
+apiVersion: elasticserving.paddlepaddle.org/v1
+kind: PaddleService
+metadata:
+  name: paddleservice-sample
+  namespace: paddleservice-system
+spec:
+  canary:
+    arg: cd Serving/python/examples/imagenet && python3 resnet50_web_service_canary.py
+      ResNet50_vd_model cpu 9292
+    containerImage: jinmionhaobaidu/resnetcanary
+    port: 9292
+    tag: latest
+  canaryTrafficPercent: 50
+  default:
+    arg: cd Serving/python/examples/imagenet && python3 resnet50_web_service.py ResNet50_vd_model
+      cpu 9292
+    containerImage: jinmionhaobaidu/resnet
+    port: 9292
+    tag: latest
+  runtimeVersion: paddleserving
+  service:
+    minScale: 0
+    window: 10s
+```
+``` bash
+# Start to send data to the server. <IP-address> is what has been got in the first or the second command.
+curl -H "host:paddleservice-sample.paddleservice-system.example.com" -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://<IP-address>:<Port>/image/prediction
+```
+
+##### Expected Result
+```
+# The expected output should be
+
+default:
+{"result":{"label":["daisy"],"prob":[0.9341399073600769]}}
+
+canary:
+{"result":{"isCanary":["true"],"label":["daisy"],"prob":[0.9341399073600769]}}
+```
+
+#### Lac sample
+The related sample_service.yaml is as follows:
+``` yaml
+apiVersion: elasticserving.paddlepaddle.org/v1
+kind: PaddleService
+metadata:
+  name: paddleservice-sample
+  namespace: paddleservice-system
+spec:
+  canary:
+    arg: python3 Serving/python/examples/lac/lac_web_service_canary.py lac_model/
+      lac_workdir 9292
+    containerImage: jinmionhaobaidu/pdservinglaccanary
+    port: 9292
+    tag: latest
+  canaryTrafficPercent: 50
+  default:
+    arg: python3 Serving/python/examples/lac/lac_web_service.py lac_model/ lac_workdir
+      9292
+    containerImage: jinmionhaobaidu/pdservinglac
+    port: 9292
+    tag: latest
+  deploymentName: paddleservice
+  runtimeVersion: paddleserving
+  service:
+    minScale: 1
+```
+
+``` bash
+# Start to send data to the server. <IP-address> is what has been got in the first or the second command.
+curl -H "Host: paddleservice-sample.paddleservice-system.example.com" -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://<IP-address>:<Port>/lac/prediction
+```
+
+##### Expected Result
 
 ``` bash
 # The expected output should be 
