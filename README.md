@@ -11,7 +11,7 @@ The sample used here is [Resnet50 in ImageNet](https://github.com/PaddlePaddle/S
 ### Prerequisites
 - Kubernetes > 1.18
 - Knative Serving with networking layer Installed.
-You can refer to the [Installation guide](https://knative.dev/v0.22-docs/install/install-serving-with-yaml/) or run `hack/install_knative.sh`(knative serving v0.21 with istio) / `hack/install_knative_kourier.sh`(knative serving v0.22 with kourier).
+You can refer to the [Installation guide](https://knative.dev/v0.21-docs/install/any-kubernetes-cluster/#installing-the-serving-component) or run `hack/install_knative.sh`(knative serving v0.21 with istio) / `hack/install_knative_kourier.sh`(knative serving v0.22 with kourier).
 
 ### Installation
 
