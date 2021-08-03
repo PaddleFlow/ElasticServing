@@ -1,12 +1,12 @@
 # ElasticServing
 
-ElasticServing provides a Kubernetes custom resource definition (CRD) for serving machine learning (ML) models on mainstream framework such as tensorflow, onnx, paddle. It encapsulates the complexity of auto scaling, fault tolerant, health check and use kustomize for configuration reconcile. It also natively support heterogeneous hardware like nvidia GPU or KunLun chip. With ElasticServing it’s easy to scaling to zero and do the canary launch for ML deployment.
+ElasticServing provides a Kubernetes custom resource definition (CRD) for serving machine learning (ML) models on mainstream framework such as tensorflow, onnx, paddle. It encapsulates the complexity of auto scaling, fault tolerant, health check and use kustomize for configuration reconcile. It also natively support heterogeneous hardware like nvidia GPU or KunLun chip. With ElasticServing it's easy to scaling to zero and do the canary launch for ML deployment.
 
 ## Quick Start
 
-Image used here is [Paddle Serving Image for CPU](https://github.com/PaddlePaddle/Serving#installation). This can be modified in ```config/configmap/configmap.yaml```
+The image used in our sample service is based on [Paddle Serving Image for CPU](https://github.com/PaddlePaddle/Serving#installation).
 
-The sample used here is [Chinese Word Segmentation](https://github.com/PaddlePaddle/Serving#-pre-built-services-with-paddle-serving). The preparation work is done making used of the entrypoint of docker. This can be modified in ```args``` column in ```config/samples/elasticserving_v1_paddle.yaml``` 
+The sample used here is [Resnet50 in ImageNet](https://github.com/PaddlePaddle/Serving/tree/v0.6.0/python/examples/imagenet) and [Chinese Word Segmentation](https://github.com/PaddlePaddle/Serving#-pre-built-services-with-paddle-serving). The preparation work is done based on the entrypoint of docker. This can be modified in ```arg```.
 
 ### Prerequisites
 - Kubernetes > 1.18
@@ -20,7 +20,10 @@ You can refer to the [Installation guide](https://knative.dev/v0.22-docs/install
 git clone https://github.com/PaddleFlow/ElasticServing.git
 cd ElasticServing
 
-# Install elastic serving CRD and controller manager
+# Install elastic serving CRD
+kubectl apply -f assets/crd.yaml
+
+# Install elastic serving controller manager
 kubectl apply -f assets/elasticserving_operator.yaml
 
 # Deploy paddle service
@@ -40,7 +43,7 @@ kubectl get ksvc -n paddleservice-system
 kubectl get pods -n paddleservice-system
 
 # Check if the preparation work has been finished
-kubectl logs <pod-name> -n paddleservice-system -c paddleserving -f
+kubectl logs <pod-name> -n paddleservice-system -c paddleserving
 
 ```
 
@@ -59,7 +62,7 @@ minikube service --url istio-ingressgateway -n istio-system
 # Get the port of the gateway
 kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}'
 
-# Find the URL of the application. The expected result may be http://paddle-sample-service.paddleservice-system.example.com
+# Find the URL of the application. The expected result may be http://paddleservice-sample.paddleservice-system.example.com
 kubectl get ksvc paddle-sample-service -n paddleservice-system
 ```
 
@@ -216,8 +219,17 @@ spec:
     tag: latest
   runtimeVersion: paddleserving
   service:
-    minScale: 1
+    minScale: 0
+    maxScale: 0
+    autoscaler: "kpa"
+    metric: "concurrency" # scaling metric
+    window: "60s"
+    panicWindow: 10 # percentage of stable window
+    target: 100
+    targetUtilization: 70
 ```
+
+Please note that only the field `default` is required. Other fields can be empty and default value will be set. Field `canary` and `canaryTrafficPercent` are not required if your own paddleservice doesn't need them.
 
 Execute the following command:
 
