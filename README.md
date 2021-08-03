@@ -6,7 +6,7 @@ ElasticServing provides a Kubernetes custom resource definition (CRD) for servin
 
 The image used in our sample service is based on [Paddle Serving Image for CPU](https://github.com/PaddlePaddle/Serving#installation).
 
-The sample used here is [Resnet50 in ImageNet](https://github.com/PaddlePaddle/Serving/tree/v0.6.0/python/examples/imagenet) and [Chinese Word Segmentation](https://github.com/PaddlePaddle/Serving#-pre-built-services-with-paddle-serving). The preparation work is done based on the entrypoint of docker. This can be modified in ```arg```.
+The sample used here is [Resnet50 in ImageNet](https://github.com/PaddlePaddle/Serving/tree/v0.6.0/python/examples/imagenet) and [Chinese Word Segmentation](https://github.com/PaddlePaddle/Serving#-pre-built-services-with-paddle-serving). The preparation work is done based on the entrypoint of docker. This can be modified in `arg`.
 
 ### Prerequisites
 - Kubernetes > 1.18
