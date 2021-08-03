@@ -25,12 +25,16 @@ kubectl apply -f assets/crd.yaml
 
 # Install elastic serving controller manager
 kubectl apply -f assets/elasticserving_operator.yaml
+```
 
+### Run Sample
+
+``` bash
 # Deploy paddle service
 kubectl apply -f assets/sample_service.yaml
 ```
 
-### Installation Test
+#### Sample Service Test
 
 ``` bash
 # Check service in namespace paddleservice-system
@@ -46,8 +50,6 @@ kubectl get pods -n paddleservice-system
 kubectl logs <pod-name> -n paddleservice-system -c paddleserving
 
 ```
-
-### Run Sample
 
 We use Istio as the networking layer for Knative serving. It's also fine for users to use others, i.e, Kourier, Contour and Ambassador.
 
@@ -67,7 +69,7 @@ kubectl get ksvc paddle-sample-service -n paddleservice-system
 ```
 
 #### Resnet_50_vd sample
-The related sample_service.yaml is as follows:
+The related `sample_service.yaml` is as follows:
 ``` yaml
 apiVersion: v1
 kind: Namespace
@@ -117,7 +119,7 @@ canary:
 ```
 
 #### Lac sample
-The related sample_service.yaml is as follows:
+You can also change the `image` and `arg` like the following to serve different models.
 ``` yaml
 apiVersion: v1
 kind: Namespace
@@ -165,23 +167,6 @@ default:
 
 canary:
 {"result":[{"word_seg":"\u6211-\u7231-\u5317\u4eac-\u5929\u5b89\u95e8"}]}
-```
-
-## Installation
-
-``` bash
-# Download ElasticServing
-git clone https://github.com/PaddleFlow/ElasticServing.git
-cd ElasticServing
-
-# Install elastic serving CRD
-kubectl apply -f assets/crd.yaml
-
-# Install elastic serving controller manager
-kubectl apply -f assets/elasticserving_operator.yaml
-
-# Deploy paddle service
-kubectl apply -f assets/sample_service.yaml
 ```
 
 ### Create your own PaddleService
