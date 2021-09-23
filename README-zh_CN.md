@@ -1,6 +1,6 @@
 # ElasticServing
 
-English | [简体中文](./README-zh_CN.md)
+[English](./README.md) | 简体中文
 
 ElasticServing provides a Kubernetes custom resource definition (CRD) for serving machine learning (ML) models on mainstream framework such as tensorflow, onnx, paddle. It encapsulates the complexity of auto scaling, fault tolerant, health check and use kustomize for configuration reconcile. It also natively support heterogeneous hardware like nvidia GPU or KunLun chip. With ElasticServing it's easy to scaling to zero and do the canary launch for ML deployment.
 
@@ -13,7 +13,7 @@ The sample used here is [Resnet50 in ImageNet](https://github.com/PaddlePaddle/S
 ### Prerequisites
 - Kubernetes >= 1.18
 - Knative Serving with networking layer Installed.
-You can refer to the [installation guide](https://knative.dev/v0.21-docs/install/any-kubernetes-cluster/#installing-the-serving-component) or run `hack/install_knative.sh`(knative serving v0.21 with istio) / `hack/install_knative_kourier.sh`(knative serving v0.22 with kourier).
+  You can refer to the [installation guide](https://knative.dev/v0.21-docs/install/any-kubernetes-cluster/#installing-the-serving-component) or run `hack/install_knative.sh`(knative serving v0.21 with istio) / `hack/install_knative_kourier.sh`(knative serving v0.22 with kourier).
 
 ### Installation
 

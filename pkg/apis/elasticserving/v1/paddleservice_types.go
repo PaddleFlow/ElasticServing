@@ -109,11 +109,13 @@ type PaddleServiceStatus struct {
 	Replicas int32 `json:"replicas,omitempty"`
 }
 
-// +kubebuilder:object:root=true
+
 
 // PaddleService is the Schema for the paddles API
+// +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas
+// +genclient
 type PaddleService struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
