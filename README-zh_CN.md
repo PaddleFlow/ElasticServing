@@ -41,16 +41,16 @@ kubectl apply -f assets/sample_service.yaml
 #### 检查服务状态
 
 ```bash
-# Check service in namespace paddleservice-system
+# 查看命名空间 paddleservice-system 下的 Service
 kubectl get svc -n paddleservice-system
 
-# Check knative service in namespace paddleservice-system
+# 查看命名空间 paddleservice-system 下的 knative service
 kubectl get ksvc -n paddleservice-system
 
-# Check pods in namespace paddleservice-system
+# 查看命名空间 paddleservice-system 下的 pod
 kubectl get pods -n paddleservice-system
 
-# Check if the preparation work has been finished
+# 查看 Paddle Service Pod 的日志信息
 kubectl logs <pod-name> -n paddleservice-system -c paddleserving
 
 ```
@@ -74,6 +74,7 @@ kubectl get ksvc paddle-sample-service -n paddleservice-system
 
 #### Resnet_50_vd 示例
 编写 `sample_service.yaml` 如下:
+
 ```yaml
 apiVersion: v1
 kind: Namespace
@@ -106,6 +107,7 @@ spec:
     minScale: 0
     window: 10s
 ```
+
 ```bash
 # Start to send data to the server. <IP-address> is what has been got in the first or the second command.
 curl -H "host:paddleservice-sample.paddleservice-system.example.com" -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://<IP-address>:<Port>/image/prediction
@@ -113,7 +115,7 @@ curl -H "host:paddleservice-sample.paddleservice-system.example.com" -H "Content
 
 ##### 输出的结果
 ```
-# The expected output should be
+# 期望的输出结果如下
 
 default:
 {"result":{"label":["daisy"],"prob":[0.9341399073600769]}}
@@ -124,7 +126,7 @@ canary:
 
 ### 创建你自己的 PaddleService
 
-After insntalling CRD ```kubectl apply -f assets/crd.yaml``` and controller manager ```kubectl apply -f assets/elasticserving_operator.yaml```, you can build your own PaddleService by applying your yaml which looks like the following one.
+安装好 CRD ```kubectl apply -f assets/crd.yaml``` 和 Controller ```kubectl apply -f assets/elasticserving_operator.yaml``` 后, you can build your own PaddleService by applying your yaml which looks like the following one.
 
 example.yaml
 
