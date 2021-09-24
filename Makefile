@@ -70,6 +70,9 @@ docker-build: test
 docker-push:
 	docker push ${IMG}
 
+update-api-doc:
+	bash docs/api-doc-gen/gen_api_doc.sh
+
 # find or download controller-gen
 # download controller-gen if necessary
 controller-gen:

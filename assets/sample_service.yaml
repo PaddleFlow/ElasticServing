@@ -14,14 +14,14 @@ spec:
   canary:
     arg: cd Serving/python/examples/imagenet && python3 resnet50_web_service_canary.py
       ResNet50_vd_model cpu 9292
-    containerImage: jinmionhaobaidu/resnetcanary
+    containerImage: registry.baidubce.com/paddleflow-public/resnetcanary-serving
     port: 9292
     tag: latest
   canaryTrafficPercent: 50
   default:
     arg: cd Serving/python/examples/imagenet && python3 resnet50_web_service.py ResNet50_vd_model
       cpu 9292
-    containerImage: jinmionhaobaidu/resnet
+    containerImage: registry.baidubce.com/paddleflow-public/resnet-serving
     port: 9292
     tag: latest
   runtimeVersion: paddleserving

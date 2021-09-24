@@ -9,7 +9,7 @@ kubectl apply --filename https://github.com/knative/serving/releases/download/${
 kubectl apply --filename https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/serving-core.yaml
 
 # Setup kourier
-kubectl apply --filename https://github.com/knative/net-kourier/releases/download/${KNATIVE_VERSION}/istio.yaml
+kubectl apply --filename https://github.com/knative/net-kourier/releases/download/${KNATIVE_VERSION}/kourier.yaml
 kubectl patch configmap/config-network \
   --namespace knative-serving \
   --type merge \
