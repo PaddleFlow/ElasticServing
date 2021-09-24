@@ -17,7 +17,7 @@ You can refer to the [installation guide](https://knative.dev/v0.21-docs/install
 
 ### Installation
 
-``` bash
+```bash
 # Download ElasticServing
 git clone https://github.com/PaddleFlow/ElasticServing.git
 cd ElasticServing
@@ -31,14 +31,14 @@ kubectl apply -f assets/elasticserving_operator.yaml
 
 ### Run Sample
 
-``` bash
+```bash
 # Deploy paddle service
 kubectl apply -f assets/sample_service.yaml
 ```
 
 #### Sample Service Test
 
-``` bash
+```bash
 # Check service in namespace paddleservice-system
 kubectl get svc -n paddleservice-system
 
@@ -50,12 +50,11 @@ kubectl get pods -n paddleservice-system
 
 # Check if the preparation work has been finished
 kubectl logs <pod-name> -n paddleservice-system -c paddleserving
-
 ```
 
 We use Istio as the networking layer for Knative serving. It's also fine for users to use others, i.e, Kourier, Contour and Ambassador.
 
-``` bash
+```bash
 # Find the public IP address of the gateway (make a note of the EXTERNAL-IP field in the output)
 kubectl get service istio-ingressgateway --namespace=istio-system
 # If the EXTERNAL-IP is pending, get the ip with the following command
@@ -72,7 +71,7 @@ kubectl get ksvc paddle-sample-service -n paddleservice-system
 
 #### Resnet_50_vd sample
 The related `sample_service.yaml` is as follows:
-``` yaml
+```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -104,7 +103,7 @@ spec:
     minScale: 0
     window: 10s
 ```
-``` bash
+```bash
 # Start to send data to the server. <IP-address> is what has been got in the first or the second command.
 curl -H "host:paddleservice-sample.paddleservice-system.example.com" -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://<IP-address>:<Port>/image/prediction
 ```
@@ -126,7 +125,7 @@ After insntalling CRD ```kubectl apply -f assets/crd.yaml``` and controller mana
 
 example.yaml
 
-``` yaml
+```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -169,14 +168,19 @@ Please note that only the field `default` is required. Other fields can be empty
 
 Execute the following command:
 
-``` bash
+```bash
 kubectl apply -f /dir/to/this/yaml/example.yaml
 ```
 
-### More Examples
+## More Examples
 
-- []()
-- []()
+- [BERT](./docs/en/examples/bert.md): Semantic Understanding Prediction
+- [LAC](./docs/en/examples/lac.md): Chinese Word Segmentation
+- [Criteo Ctr](./docs/en/examples/criteo_ctr.md): CTR Prediction Service
+
+## More Information
+
+Please refer to the [API docs](./docs/en/api_doc.md) for more information about custom resource definition.
 
 ## License
 
