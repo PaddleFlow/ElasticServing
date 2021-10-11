@@ -1,20 +1,20 @@
 # Wide & Deep Pipeline
 
-本文档主要讲述了如何使用 Paddle Operator 和 ElasticServing 等各个组件，完成 Wide & Deep 模型的 Pipeline 流程，该流程包括`数据准备-模型训练-模型服务部署`等步骤。
-Wide & Deep 模型是 Google 2016 年发布的推荐框架，本示例中使用的模型模型代码由 [PaddleRec 项目](https://github.com/PaddlePaddle/PaddleRec/blob/release/2.1.0/models/rank/wide_deep/README.md) 提供。
+本文档主要讲述了如何使用 Paddle Operator 和 ElasticServing 等各个组件，完成 Wide & Deep 模型的 Pipeline 流程，该流程包括数据准备、模型训练、模型服务部署等步骤。
+Wide & Deep 模型是 Google 2016 年发布的推荐框架，本示例中使用的模型代码由 [PaddleRec 项目](https://github.com/PaddlePaddle/PaddleRec/blob/release/2.1.0/models/rank/wide_deep/README.md) 提供。
 
 ## 一、数据准备
 
 本示例使用的是 [Display Advertising Challenge](https://www.kaggle.com/c/criteo-display-ad-challenge/) 提供的 Criteo 数据集，
-我们已经将数据存放在[百度对象存储（BOS）](http://baidu.netnic.com.cn/doc/BOS/BOSCLI.html#BOS.20CMD) 公开课访问的 Bucket 中 `bos://paddleflow-public.hkg.bcebos.com/criteo`。
+我们已经将数据存放在[百度对象存储（BOS）](http://baidu.netnic.com.cn/doc/BOS/BOSCLI.html#BOS.20CMD) 公开可访问的 Bucket 中 `bos://paddleflow-public.hkg.bcebos.com/criteo`。
 使用 [Paddle Operator](https://github.com/PaddleFlow/paddle-operator) 的样本缓存组件可以将样本数据缓存到集群本地，加速模型训练效率。
-如何安装 Paddle Operator 样本缓存组件组件可以参考[快速上手文档](https://github.com/xiaolao/paddle-operator/blob/sampleset/docs/zh_CN/ext-get-start.md)。
+如何安装 Paddle Operator 样本缓存组件可以参考[快速上手文档](https://github.com/xiaolao/paddle-operator/blob/sampleset/docs/zh_CN/ext-get-start.md)。
 在本示例中我们使用 [JuiceFS CSI](https://github.com/juicedata/juicefs-csi-driver) 插件为数据和模型提供存储功能，同时它也是 Paddle Operator 样本缓存组件的一部分。
 
 ### 1. 创建对象存储所需的 Secret 对象
 
 本示例使用 BOS 作为存储后端，您也可以使用其他 [JuiceFS 支持的对象存储](https://github.com/juicedata/juicefs/blob/main/docs/zh_cn/databases_for_metadata.md) 。
-创建如下的 Secret 对象，样本缓存组件需要其提供的 access-key / secret-key 来访问对象存储, metaurl 是元数据存储引擎的访问链接。
+创建如下的 Secret 对象，样本缓存组件需要使用其提供的 access-key / secret-key 来访问对象存储, metaurl 是元数据存储引擎的访问链接。
 
 ```yaml
 # criteo-secret.yaml
