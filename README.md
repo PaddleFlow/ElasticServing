@@ -177,6 +177,7 @@ kubectl apply -f /dir/to/this/yaml/example.yaml
 - [BERT](./docs/en/examples/bert.md): Semantic Understanding Prediction
 - [LAC](./docs/en/examples/lac.md): Chinese Word Segmentation
 - [Criteo Ctr](./docs/en/examples/criteo_ctr.md): CTR Prediction Service
+- [Wide & Deep](./docs/en/examples/wide_deep.md)： Wide & Deep Pipeline
 
 ## More Information
 

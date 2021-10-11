@@ -126,7 +126,7 @@ canary:
 
 ### 创建你自己的 PaddleService
 
-安装好 CRD ```kubectl apply -f assets/crd.yaml``` 和 Controller ```kubectl apply -f assets/elasticserving_operator.yaml``` 后, you can build your own PaddleService by applying your yaml which looks like the following one.
+安装好 CRD ```kubectl apply -f assets/crd.yaml``` 和 Controller ```kubectl apply -f assets/elasticserving_operator.yaml``` 后, 您可以通过编写如下所示的 Yaml 文件来创建 PaddleService。
 
 example.yaml
 
@@ -183,6 +183,7 @@ kubectl apply -f /dir/to/this/yaml/example.yaml
 - [BERT](./docs/zh_CN/examples/bert.md)： 语义理解预测服务
 - [LAC](./docs/zh_CN/examples/lac.md)： 中文分词模型
 - [Criteo Ctr](./docs/zh_CN/examples/criteo_ctr.md)：CTR预估服务
+- [Wide & Deep](./docs/zh_CN/examples/wide_deep.md)： Wide & Deep Pipeline
 
 ## 更多信息
 
