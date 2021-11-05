@@ -19,7 +19,7 @@ package v1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -45,6 +45,20 @@ type PaddleServiceSpec struct {
 	CanaryTrafficPercent *int `json:"canaryTrafficPercent,omitempty"`
 	// +optional
 	Service ServiceSpec `json:"service,omitempty"`
+	// Container's working directory.
+	// If not specified, the container runtime's default will be used, which
+	// might be configured in the container image.
+	// Cannot be updated.
+	// +optional
+	WorkingDir string `json:"workingDir,omitempty"`
+	// Pod volumes to mount into the container's filesystem.
+	// Cannot be updated.
+	// +optional
+	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
+	// List of volumes that can be mounted by containers belonging to the pod.
+	// More info: https://kubernetes.io/docs/concepts/storage/volumes
+	// +optional
+	Volumes []corev1.Volume `json:"volumes,omitempty"`
 }
 
 // EndpointSpec defines the running containers
@@ -94,7 +108,7 @@ type PaddleServiceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	duckv1beta1.Status `json:",inline"`
+	duckv1.Status `json:",inline"`
 	// URL of the PaddleService
 	URL string `json:"url,omitempty"`
 	// Statuses for the default endpoints of the PaddleService
@@ -102,7 +116,7 @@ type PaddleServiceStatus struct {
 	// Statuses for the canary endpoints of the PaddleService
 	Canary *StatusConfigurationSpec `json:"canary,omitempty"`
 	// Addressable URL for eventing
-	Address *duckv1beta1.Addressable `json:"address,omitempty"`
+	Address *duckv1.Addressable `json:"address,omitempty"`
 
 	// +optional
 	// +kubebuilder:validation:Minimum=0

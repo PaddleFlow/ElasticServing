@@ -86,6 +86,11 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 		revisionName = constants.CanaryServiceName(serviceName)
 	}
 
+	// Volume
+	volumes := paddlesvc.Spec.Volumes
+	// VolumeMount
+	volumeMounts := paddlesvc.Spec.VolumeMounts
+
 	service := &knservingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
@@ -106,6 +111,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 						TimeoutSeconds:       &constants.PaddleServiceDefaultTimeout,
 						ContainerConcurrency: &concurrency,
 						PodSpec: core.PodSpec{
+							Volumes: volumes,
 							Containers: []core.Container{
 								{
 									ImagePullPolicy: core.PullAlways,
@@ -142,6 +148,7 @@ func (r *ServiceBuilder) CreateService(serviceName string, paddlesvc *elasticser
 										},
 									},
 									Resources: resources,
+									VolumeMounts: volumeMounts,
 								},
 							},
 						},
@@ -209,6 +216,12 @@ func (r *ServiceBuilder) CreateRevision(serviceName string, paddlesvc *elasticse
 	args := []string{
 		arg,
 	}
+
+	// Volume
+	volumes := paddlesvc.Spec.Volumes
+	// VolumeMount
+	volumeMounts := paddlesvc.Spec.VolumeMounts
+
 	revision := knservingv1.Revision{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        serviceName,
@@ -220,6 +233,7 @@ func (r *ServiceBuilder) CreateRevision(serviceName string, paddlesvc *elasticse
 			TimeoutSeconds:       &constants.PaddleServiceDefaultTimeout,
 			ContainerConcurrency: &concurrency,
 			PodSpec: core.PodSpec{
+				Volumes: volumes,
 				Containers: []core.Container{
 					{
 						ImagePullPolicy: core.PullAlways,
@@ -256,6 +270,7 @@ func (r *ServiceBuilder) CreateRevision(serviceName string, paddlesvc *elasticse
 							},
 						},
 						Resources: resources,
+						VolumeMounts: volumeMounts,
 					},
 				},
 			},
