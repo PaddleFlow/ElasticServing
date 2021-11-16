@@ -204,6 +204,51 @@ ServiceSpec
 <em>(Optional)</em>
 </td>
 </tr>
+<tr>
+<td>
+<code>workingDir</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Container&rsquo;s working directory.
+If not specified, the container runtime&rsquo;s default will be used, which
+might be configured in the container image.
+Cannot be updated.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumeMounts</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#volumemount-v1-core">
+[]Kubernetes core/v1.VolumeMount
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Pod volumes to mount into the container&rsquo;s filesystem.
+Cannot be updated.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumes</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#volume-v1-core">
+[]Kubernetes core/v1.Volume
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of volumes that can be mounted by containers belonging to the pod.
+More info: <a href="https://kubernetes.io/docs/concepts/storage/volumes">https://kubernetes.io/docs/concepts/storage/volumes</a></p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -314,6 +359,51 @@ ServiceSpec
 <em>(Optional)</em>
 </td>
 </tr>
+<tr>
+<td>
+<code>workingDir</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Container&rsquo;s working directory.
+If not specified, the container runtime&rsquo;s default will be used, which
+might be configured in the container image.
+Cannot be updated.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumeMounts</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#volumemount-v1-core">
+[]Kubernetes core/v1.VolumeMount
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Pod volumes to mount into the container&rsquo;s filesystem.
+Cannot be updated.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumes</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#volume-v1-core">
+[]Kubernetes core/v1.Volume
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of volumes that can be mounted by containers belonging to the pod.
+More info: <a href="https://kubernetes.io/docs/concepts/storage/volumes">https://kubernetes.io/docs/concepts/storage/volumes</a></p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="elasticserving.paddlepaddle.org/v1.PaddleServiceStatus">PaddleServiceStatus
@@ -337,7 +427,7 @@ ServiceSpec
 <td>
 <code>Status</code></br>
 <em>
-knative.dev/pkg/apis/duck/v1beta1.Status
+knative.dev/pkg/apis/duck/v1.Status
 </em>
 </td>
 <td>
@@ -387,7 +477,7 @@ StatusConfigurationSpec
 <td>
 <code>address</code></br>
 <em>
-knative.dev/pkg/apis/duck/v1beta1.Addressable
+knative.dev/pkg/apis/duck/v1.Addressable
 </em>
 </td>
 <td>
@@ -562,5 +652,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>5c24368</code>.
+on git commit <code>97fc986</code>.
 </em></p>

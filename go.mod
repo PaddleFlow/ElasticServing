@@ -1,6 +1,6 @@
 module ElasticServing
 
-go 1.13
+go 1.15
 
 require (
 	github.com/go-logr/logr v0.2.0
@@ -9,7 +9,7 @@ require (
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
 	github.com/prometheus/common v0.14.0 // indirect
-	k8s.io/api v0.18.8
+	k8s.io/api v0.19.2
 	k8s.io/apiextensions-apiserver v0.18.8 // indirect
 	k8s.io/apimachinery v0.18.8
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
@@ -21,7 +21,6 @@ require (
 replace (
 	k8s.io/api => k8s.io/api v0.18.8
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.8
-	k8s.io/apimachinery => k8s.io/apimachinery v0.18.8
 	k8s.io/apiserver => k8s.io/apiserver v0.18.8
 	k8s.io/cli-runtime => k8s.io/cli-runtime v0.18.8
 	k8s.io/client-go => k8s.io/client-go v0.18.8

@@ -4,6 +4,7 @@ import (
 	"ElasticServing/pkg/constants"
 	"ElasticServing/pkg/controllers/elasticserving/resources/knative"
 	"context"
+	"time"
 
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -161,6 +162,7 @@ func (r *ServiceReconciler) reconcileDefaultEndpoint(paddlesvc *elasticservingv1
 				if err == nil || !errors.IsNotFound(err) {
 					break
 				}
+				time.Sleep(100 * time.Millisecond)
 			}
 			if err != nil {
 				return nil, err

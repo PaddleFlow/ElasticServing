@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= jinmionhaobaidu/paddleservice-controller:latest
+IMG ?= registry.baidubce.com/paddleflow-public/paddleservice-controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:maxDescLen=0"
 
